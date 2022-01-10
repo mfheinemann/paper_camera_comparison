@@ -1,13 +1,14 @@
 import numpy as np
+from datetime import datetime
 import cv2
 
 def main():
-    array = np.load("logs/log_zed2_220110161834.npz")
+    array = np.load("log.npz")
     data = array['data']
     timestamp = array['timestamp']
     
-    print(data.shape)
-    cv2.imshow("ZED | map", data[1,:,:])
+    date = datetime.fromtimestamp(timestamp[0])
+    cv2.imshow("ZED | map at {}".format(date), data[0,:,:])
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
