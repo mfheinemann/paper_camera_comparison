@@ -1,5 +1,5 @@
 # Michel Heinemann
-# get average of depth data
+# save realsense depth data over definied time period in .npz file
 
 import pyrealsense2 as rs
 import numpy as np
