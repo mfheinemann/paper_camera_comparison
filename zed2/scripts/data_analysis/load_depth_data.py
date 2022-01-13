@@ -2,9 +2,9 @@ import numpy as np
 import cv2
 
 def main():
-    array = np.load("logs/log_zed2_220110161834.npz")
-    data = array['data']
-    timestamp = array['timestamp']
+    array = np.load("test_depth.npz")
+    data = array
+    # timestamp = array['timestamp']
     
     print(data.shape)
     cv2.imshow("ZED | map", data[1,:,:])

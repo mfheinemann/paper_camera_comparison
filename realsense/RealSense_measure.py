@@ -8,7 +8,7 @@ import zipfile
 import os
 
 DURATION = 5            # measurement duration
-NAME = 'test'           # name of the files
+NAME = 'test_2'           # name of the files
 DEPTH_RES = [640, 480]  # desired depth resolution
 DEPTH_RATE = 30         # desired depth frame rate
 COLOR_RES = [640, 480]  # desired rgb resolution
