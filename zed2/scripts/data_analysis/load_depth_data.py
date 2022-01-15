@@ -4,7 +4,7 @@ import cv2
 def main():
     array = np.load("test_depth.npz")
     data = array
-    # timestamp = array['timestamp']
+    timestamp = array['timestamp']
     
     print(data.shape)
     cv2.imshow("ZED | map", data[1,:,:])

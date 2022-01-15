@@ -6,7 +6,7 @@ import numpy as np
 import cv2
 import os
 import time
-import datetime
+import zipfile
 
 DURATION = 5            # measurement duration
 NAME = 'test'           # name of the files
@@ -30,8 +30,6 @@ depthwriter = cv2.VideoWriter(depth_path, cv2.VideoWriter_fourcc(*'XVID'), DEPTH
 pipeline.start(config)
 
 try:
-    i=1
-
     if os.path.exists(depth_array_path):
         os.remove(depth_array_path)
 
@@ -39,13 +37,19 @@ try:
     t_end = 5
     t_current = 0
 
-    frames = []
+    color_frames = []
+    depth_frames = []
     timestamps = []
-        
-    while t_current <= t_end:
-        frame = pipeline.wait_for_frames()
-        depth_frame = frame.get_depth_frame()
-        color_frame = frame.get_color_frame()
+
+    i=1
+
+    while True:
+
+        timestamps.append(time.time())
+
+        frames = pipeline.wait_for_frames()
+        depth_frame = frames.get_depth_frame()
+        color_frame = frames.get_color_frame()
         if not depth_frame or not color_frame:
             continue
         
@@ -57,33 +61,34 @@ try:
         colorwriter.write(color_image)
         depthwriter.write(depth_colormap)
 
-        timestamps.append(time.time())
-
-        frames.append(depth_image)
-
-        # with zipfile.ZipFile(depth_array_path, mode='a', compression=zipfile.ZIP_DEFLATED) as zf:
-        #     array_name = str(i/DEPTH_RATE)
-        #     depth_array = {array_name:depth_image}
-        #     tmpfilename = "{}.npy".format(array_name)
-        #     np.save(tmpfilename, depth_image)
-        #     zf.write(tmpfilename)
-        #     os.remove(tmpfilename)
+        with zipfile.ZipFile(depth_array_path, mode='a', compression=zipfile.ZIP_DEFLATED) as zf:
+            array_name = str(t_current)
+            depth_array = {array_name:depth_image}
+            tmpfilename = "{}.npy".format(array_name)
+            np.save(tmpfilename, depth_image)
+            zf.write(tmpfilename)
+            os.remove(tmpfilename)
 
         cv2.imshow('Stream', depth_colormap)
+
+        if cv2.waitKey(1) == ord("q"):
+            break
 
         if int(t_current) != int(time.time() - t_start):
             print("Time recorded: {} ...".format(int(t_current)))
         t_current = time.time() - t_start
 
-        if cv2.waitKey(1) == ord("q"):
+        if int(i/DEPTH_RATE) == int(DURATION):
             break
 
-    print(len(frames))
+        i += 1
+
+    npzfile = np.load(depth_array_path)    
+    print(len(npzfile.files))
     timestamps_array = np.stack(timestamps, axis=0)
-    frames_array = np.stack(frames, axis=0)
+    frames_array = np.stack(npzfile.files, axis=0)
 
 finally:
-    current_datetime = datetime.datetime.now()
     np.savez_compressed(depth_array_path, data=frames_array, timestamp=timestamps_array)
 
     colorwriter.release()
