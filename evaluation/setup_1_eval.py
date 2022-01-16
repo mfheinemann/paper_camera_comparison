@@ -14,8 +14,19 @@ def main():
     file_path = filedialog.askopenfilename()
 
     array = np.load(file_path)
-    data = array.files
-    print(data)
+    for key, array in array.items():
+        print(array)
+        img_16 = cv2.cvtColor(array,cv2.COLOR_GRAY2BGR)
+        img_8 = cv2.convertScaleAbs(img_16)
+        edges = cv2.Canny(image=img_8, threshold1=1, threshold2=100)
+
+        # Display Canny Edge Detection Image
+        cv2.imshow('edges', edges)
+        cv2.waitKey(1)
+
+
+    # data = array.files
+    # print(array)
     # data = array['data']
     # timestamp = array['timestamp']
 
