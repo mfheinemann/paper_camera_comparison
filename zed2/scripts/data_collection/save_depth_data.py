@@ -6,7 +6,7 @@ import numpy as np
 import cv2
 
 def main():
-    init = sl.InitParameters(camera_resolution = sl.RESOLUTION.HD720,
+    init = sl.InitParameters(camera_resolution = sl.RESOLUTION.HD2K,
                                  camera_fps = 15,
                                  depth_mode = sl.DEPTH_MODE.ULTRA,
                                  coordinate_units = sl.UNIT.METER,
@@ -28,7 +28,10 @@ def main():
     t_start = time.time()
     t_end = 50
     t_current = 0
+    i = 1
+
     while t_current <= t_end:
+        print("Frame: " + str(i))
         timestamps.append(time.time())
         if zed.grab(runtime_parameters) == sl.ERROR_CODE.SUCCESS:
             zed.retrieve_measure(depth_map, sl.MEASURE.DEPTH)
@@ -36,13 +39,14 @@ def main():
             map = depth_map.get_data()
             image = depth_image.get_data()
 
-            frames.append(map)
+            frames.append(np.float16(map))
             cv2.imshow("ZED | image", image)
             cv2.waitKey(1)
             
         if int(t_current) != int(time.time() - t_start):
-            print("Time recorded: {} ...".format(int(t_current)))
+            print("Time recorded: {} ...".format(int(t_current + 1)))
         t_current = time.time() - t_start
+        i += 1
 
     cv2.destroyAllWindows()
     zed.close()
@@ -51,7 +55,7 @@ def main():
     frames_array = np.stack(frames, axis=0)
 
     current_datetime = datetime.datetime.now()
-    video_title = "logs/log_zed2_" + current_datetime.strftime("%y%m%d%H%M%S")
+    video_title = "../../logs/log_zed2_" + current_datetime.strftime("%y%m%d%H%M%S")
     np.savez_compressed(video_title, data=frames_array, timestamp=timestamps_array)
 
 
