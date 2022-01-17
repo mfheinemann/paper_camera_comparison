@@ -7,10 +7,10 @@ import cv2
 import matplotlib.pyplot as plt
 
 def main():
-    show_image = False
+    show_image = True
 
-    init = sl.InitParameters(camera_resolution = sl.RESOLUTION.VGA,
-                                 camera_fps = 15,
+    init = sl.InitParameters(camera_resolution = sl.RESOLUTION.HD720,
+                                 camera_fps = 30,
                                  depth_mode = sl.DEPTH_MODE.ULTRA,
                                  coordinate_units = sl.UNIT.MILLIMETER,
                                  coordinate_system = sl.COORDINATE_SYSTEM.RIGHT_HANDED_Y_UP)
@@ -40,15 +40,16 @@ def main():
             zed.retrieve_measure(depth_map, sl.MEASURE.DEPTH)
             map = depth_map.get_data()
 
-            # Convert to uint16
-            map_uint16 = np.uint16(map)
-            frames.append(map_uint16)
-
             if show_image:
                 zed.retrieve_image(depth_image, sl.VIEW.DEPTH)
                 image = depth_image.get_data()
                 cv2.imshow("ZED | image", image)
-                cv2.waitKey(0)
+                cv2.waitKey(1)
+            
+            # Convert to uint16
+            map_uint16 = np.uint16(map)
+            frames.append(image)
+
             
         if int(t_current) != int(time.time() - t_start):
             print("Time recorded: {} ...".format(int(t_current + 1)))
