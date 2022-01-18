@@ -32,11 +32,10 @@ def main():
     gradient = cv2.morphologyEx(img, cv2.MORPH_GRADIENT, kernel)
     
 
-   # cv2.imshow('Original',img)
-    #cv2.imshow('Canny',edges)
-    #cv2.imshow('gradient',gradient)
+    cv2.imshow('Original',img)
+    cv2.imshow('Canny',edges)
+    cv2.imshow('gradient',gradient)
 
-    #cv2.imshow("ZED | map at {}".format(date), data[0,:,:])
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
