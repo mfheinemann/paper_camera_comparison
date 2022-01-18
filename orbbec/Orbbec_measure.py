@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from turtle import color
 import cv2
 import numpy as np
 from openni import openni2
@@ -11,7 +12,13 @@ dev = openni2.Device.open_any()
 # Start the depth stream
 depth_stream = dev.create_depth_stream()
 depth_stream.start()
-depth_stream.set_video_mode(c_api.OniVideoMode(pixelFormat = c_api.OniPixelFormat.ONI_PIXEL_FORMAT_DEPTH_100_UM, resolutionX = 640, resolutionY = 480, fps = 30))
+depth_stream.set_video_mode(c_api.OniVideoMode(pixelFormat = c_api.OniPixelFormat.ONI_PIXEL_FORMAT_DEPTH_1_MM, resolutionX = 640, resolutionY = 480, fps = 30))
+
+# Start the color stream
+cap = cv2.VideoCapture(4)
+if not cap.isOpened():
+    print("Cannot open camera")
+    exit()
 
 # Function to return some pixel information when the OpenCV window is clicked
 refPt = []
@@ -41,10 +48,15 @@ while True:
                 frame_data = frame.get_buffer_as_uint16()
                 # Put the depth frame into a numpy array and reshape it
                 img = np.frombuffer(frame_data, dtype=np.uint16)
+                # print(img.shape)
                 img.shape = (1, 480, 640)
-                img = np.concatenate((img, img, img), axis=0)
+                # print(img.shape)
+                # img = np.concatenate((img, img, img), axis=0)
+                # print(img.shape)
                 img = np.swapaxes(img, 0, 2)
+                # print(img.shape)
                 img = np.swapaxes(img, 0, 1)
+                # print(img.shape)
 
                 if len(refPt) > 1:
                                 img = img.copy()
@@ -52,6 +64,19 @@ while True:
 
                 # Display the reshaped depth frame using OpenCV
                 cv2.imshow("Depth Image", img)
+                # Capture frame-by-frame
+                ret, frame = cap.read()
+                # if frame is read correctly ret is True
+                if not ret:
+                    print("Can't receive frame (stream end?). Exiting ...")
+                    break
+                # Our operations on the frame come here
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                # Display the resulting frame
+                cv2.imshow('frame', gray)
+                if cv2.waitKey(1) == ord('q'):
+                    break
+                
                 key = cv2.waitKey(1) & 0xFF
 
                 # If the 'c' key is pressed, break the while loop
@@ -59,5 +84,6 @@ while True:
                                 break
 
 # Close all windows and unload the depth device
+cap.release()
 openni2.unload()
 cv2.destroyAllWindows()
