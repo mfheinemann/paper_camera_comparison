@@ -23,9 +23,9 @@ def main():
                                                 confidence_threshold = 100)
     cam_params = zed.get_camera_information().calibration_parameters
 
-    K = np.array([[cam_params.left_cam.fx,                      0, cam_params.left_cam.cx],
-              [                     0, cam_params.left_cam.fy, cam_params.left_cam.cy],
-              [                     0,                      0,                      1]])
+    K = np.array([[cam_params.left_cam.fx, 0, cam_params.left_cam.cx],
+              [0, cam_params.left_cam.fy, cam_params.left_cam.cy],
+              [0, 0, 1]])
     print(K)
     R = pose.get_rotation_matrix(sl.Rotation()).r.T     
     t = pose.get_translation(sl.Translation()).get()            
