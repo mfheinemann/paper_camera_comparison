@@ -1,4 +1,3 @@
-import ogl_viewer.viewer as gl
 import pyzed.sl as sl
 import datetime
 import numpy as np
@@ -35,8 +34,8 @@ def main():
     for i in range(num_frames):
         print("Frame: " + str(i + 1))
         if zed.grab(runtime_params) == sl.ERROR_CODE.SUCCESS:
-            zed.retrieve_measure(depth_map, sl.MEASURE.MEASURE.XYZ)
-            cloud = depth_cloud.get_data()
+            zed.retrieve_measure(depth_map, sl.MEASURE.XYZ, sl.MEM.CPU)
+            cloud = depth_map.get_data()
 
             if show_image:
                 zed.retrieve_image(depth_image, sl.VIEW.DEPTH)

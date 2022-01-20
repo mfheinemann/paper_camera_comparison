@@ -1,4 +1,4 @@
-from scripts.crop_target import CropTarget
+from crop_target.crop_target import CropTarget
 import numpy as np
 import tkinter as tk
 from tkinter import filedialog
@@ -35,8 +35,11 @@ def main():
     disp = cv2.applyColorMap(disp, cv2.COLORMAP_JET)
     image_new = target.give_cropped_image(disp, extrinsic_params, intrinsic_params,
                                             shape, center, size, angle)
+    image_new2 = target.show_target_in_image(disp, extrinsic_params, intrinsic_params,
+                                            shape, center, size, angle)
 
     cv2.imshow("cropped image", image_new)
+    cv2.imshow("cropped image2", image_new2)
     cv2.waitKey(0)
 
 if __name__ == "__main__":
