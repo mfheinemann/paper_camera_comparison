@@ -6,3 +6,6 @@ __pycache__/
 # log files
 *.npz
 *.npy
+
+# video files 
+*.avi
