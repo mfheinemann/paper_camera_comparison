@@ -9,6 +9,8 @@ import time
 import zipfile
 
 DURATION = 5            # measurement duration
+LOG_PATH = '../../logs/log_rs'
+RS_MODEL = 'd455'
 NAME = 'test'           # name of the files
 DEPTH_RES = [640, 480]  # desired depth resolution
 DEPTH_RATE = 30         # desired depth frame rate
@@ -21,25 +23,26 @@ config = rs.config()
 config.enable_stream(rs.stream.depth, DEPTH_RES[0], DEPTH_RES[1], rs.format.z16, DEPTH_RATE)
 config.enable_stream(rs.stream.color, COLOR_RES[0], COLOR_RES[1], rs.format.bgr8, COLOR_RATE)
 
-color_path = NAME + '_rgb.avi'
-depth_path = NAME + '_depth.avi'
-depth_array_path = NAME + '_pc'
+color_path = LOG_PATH + RS_MODEL + '_' + NAME + '_rgb.avi'
+depth_path = LOG_PATH + RS_MODEL + '_' + NAME + '_depth.avi'
+depth_array_path = LOG_PATH + RS_MODEL + '_' + NAME + '_pc'
 colorwriter = cv2.VideoWriter(color_path, cv2.VideoWriter_fourcc(*'XVID'), COLOR_RATE, (COLOR_RES[0], COLOR_RES[1]), 1)
 depthwriter = cv2.VideoWriter(depth_path, cv2.VideoWriter_fourcc(*'XVID'), DEPTH_RATE, (DEPTH_RES[0], DEPTH_RES[1]), 1)
 
-pipeline.start(config)
+cfg = pipeline.start(config)
 
 try:
     if os.path.exists(depth_array_path):
         os.remove(depth_array_path)
 
     t_start = time.time()
-    t_end = 5
     t_current = 0
 
     color_frames = []
     depth_frames = []
     timestamps = []
+    intrinsic_params = []
+    extrinsic_params = []
 
     i=1
 
@@ -61,13 +64,39 @@ try:
         colorwriter.write(color_image)
         depthwriter.write(depth_colormap)
 
+        pc = rs.pointcloud()
+        pc.map_to(color_frame)
+        point_cloud = pc.calculate(depth_frame)
+        point_cloud_list = np.asanyarray(point_cloud.get_vertices())
+        pc = point_cloud_list.view(np.float32).reshape((point_cloud_list.size, 3))
+        point_cloud_array = pc.reshape((480, 640, 3))
+        #print(point_cloud_array.shape)
+
         with zipfile.ZipFile(depth_array_path, mode='a', compression=zipfile.ZIP_DEFLATED) as zf:
             array_name = str(t_current)
-            depth_array = {array_name:depth_image}
+            depth_array = {array_name:point_cloud_array}
             tmpfilename = "{}.npy".format(array_name)
-            np.save(tmpfilename, depth_image)
+            np.save(tmpfilename, point_cloud_array)
             zf.write(tmpfilename)
             os.remove(tmpfilename)
+
+        profile_1 = cfg.get_stream(rs.stream.depth) # Fetch stream profile for depth stream
+        intr = profile_1.as_video_stream_profile().get_intrinsics() # Downcast to video_stream_profile and fetch intrinsics
+
+        profile_2 = cfg.get_stream(rs.stream.color)
+        extr = profile_2.get_extrinsics_to(profile_2)
+
+        K = np.array([[intr.fx, 0, intr.ppx],
+            [0, intr.fy, intr.ppy],
+            [0, 0, 1]])
+        intrinsic_params.append(K)
+
+        R = np.array(extr.rotation)
+        R = R.reshape(3,3)   
+        t = np.array(extr.translation)
+        t = t.reshape(3,1)             
+        extrinsic_matrix = np.concatenate((R, t), axis=1)
+        extrinsic_params.append(extrinsic_matrix)
 
         cv2.imshow('Stream', depth_colormap)
 
@@ -86,10 +115,17 @@ try:
     npzfile = np.load(depth_array_path)    
     print(len(npzfile.files))
     timestamps_array = np.stack(timestamps, axis=0)
-    frames_array = np.stack(npzfile.files, axis=0)
+    frames_array = np.stack(npzfile.values(), axis=0)
+
+    if os.path.exists(depth_array_path):
+        os.remove(depth_array_path)
 
 finally:
-    np.savez_compressed(depth_array_path, data=frames_array, timestamp=timestamps_array)
+    extrinsic_params_array = np.stack(extrinsic_params, axis=0)
+    intrinsic_params_array = np.stack(intrinsic_params, axis=0)
+    np.savez_compressed(depth_array_path, data=frames_array, 
+                        intrinsic_params=intrinsic_params_array, 
+                        extrinsic_params=extrinsic_params_array)
 
     colorwriter.release()
     depthwriter.release()
