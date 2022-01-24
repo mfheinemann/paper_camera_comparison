@@ -3,11 +3,12 @@ import datetime
 import numpy as np
 import cv2
 from crop_target.crop_target import CropTarget
+import math as m
 
 def main():
     print("Check that target is aligned in the frame... Press 'q' to exit")
 
-    depth_fps   = 30
+    depth_fps   = 15
 
     init = sl.InitParameters(camera_resolution = sl.RESOLUTION.HD720,
                                  camera_fps = depth_fps,
@@ -26,9 +27,9 @@ def main():
     # Define target
     shape   = 'rectangle'
     if shape == 'rectangle':
-        center  = np.array([[1.0], [0.0], [2.0]])    # Center of plane
+        center  = np.array([[0.0], [0.0], [1.0]])    # Center of plane
         size    = np.array([0.5, 0.5])               # (width, height) in m
-        angle   = 1.6                                # In radiants
+        angle   = 0.0                                # In radiants
     elif shape == 'circle':
         center  = np.array([[1.0], [0.0], [3.0]])   # Center of shpere
         size    = 0.2                               # Radius in m
@@ -40,11 +41,14 @@ def main():
     cam_params = zed.get_camera_information().calibration_parameters
     pose = sl.Pose()
     depth_image = sl.Mat()
+    depth_map = sl.Mat()
+    b =[]
     key = ''
 
     while key != 113:
         if zed.grab(runtime_params) == sl.ERROR_CODE.SUCCESS:
             zed.retrieve_image(depth_image, sl.VIEW.DEPTH)
+            zed.retrieve_measure(depth_map, sl.MEASURE.DEPTH)
 
             intrinsic_params = np.array([[cam_params.left_cam.fx, 0, cam_params.left_cam.cx],
               [0, cam_params.left_cam.fy, cam_params.left_cam.cy],
@@ -57,6 +61,11 @@ def main():
             image = depth_image.get_data()
             image_with_target = target.show_target_in_image(image, extrinsic_params, intrinsic_params,
                                             shape, center, size, angle)
+            
+            map = depth_map.get_data()
+            a = map.shape
+            b.append(map[int(a[0]/2), int(a[1]/2)])
+            print(np.mean(b)/1000)
             cv2.imshow("ZED | image", image_with_target)
             key = cv2.waitKey(1)
 
