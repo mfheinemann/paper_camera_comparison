@@ -7,14 +7,17 @@ import cv2
 import os
 import time
 import zipfile
+from tkinter import messagebox
+import sys
 
-DURATION = 5            # measurement duration
+
+DURATION = 50            # measurement duration
 LOG_PATH = '../../logs/log_rs'
 RS_MODEL = 'd455'
-NAME = 'test'           # name of the files
-DEPTH_RES = [640, 480]  # desired depth resolution
+NAME = '10'           # name of the files
+DEPTH_RES = [1280, 720]  # desired depth resolution
 DEPTH_RATE = 30         # desired depth frame rate
-COLOR_RES = [640, 480]  # desired rgb resolution
+COLOR_RES = [1280, 720]  # desired rgb resolution
 COLOR_RATE = 30         # desired rgb frame rate
 
 
@@ -34,6 +37,13 @@ cfg = pipeline.start(config)
 try:
     if os.path.exists(depth_array_path):
         os.remove(depth_array_path)
+
+    if os.path.exists(depth_array_path + '.npz'):
+        if messagebox.askokcancel("Exit", "File already exists! Overwrite ?"):
+            print("Overwriting!")
+        else:
+            print("Canceling!")
+            sys.exit()
 
     t_start = time.time()
     t_current = 0
@@ -69,7 +79,7 @@ try:
         point_cloud = pc.calculate(depth_frame)
         point_cloud_list = np.asanyarray(point_cloud.get_vertices())
         pc = point_cloud_list.view(np.float32).reshape((point_cloud_list.size, 3))
-        point_cloud_array = pc.reshape((480, 640, 3))
+        point_cloud_array = np.uint16(pc.reshape((DEPTH_RES[1], DEPTH_RES[0], 3)))
         #print(point_cloud_array.shape)
 
         with zipfile.ZipFile(depth_array_path, mode='a', compression=zipfile.ZIP_DEFLATED) as zf:
@@ -84,7 +94,7 @@ try:
         intr = profile_1.as_video_stream_profile().get_intrinsics() # Downcast to video_stream_profile and fetch intrinsics
 
         profile_2 = cfg.get_stream(rs.stream.color)
-        extr = profile_2.get_extrinsics_to(profile_2)
+        extr = profile_2.get_extrinsics_to(profile_1)
 
         K = np.array([[intr.fx, 0, intr.ppx],
             [0, intr.fy, intr.ppy],
@@ -112,20 +122,25 @@ try:
 
         i += 1
 
-    npzfile = np.load(depth_array_path)    
-    print(len(npzfile.files))
-    timestamps_array = np.stack(timestamps, axis=0)
-    frames_array = np.stack(npzfile.values(), axis=0)
-
-    if os.path.exists(depth_array_path):
-        os.remove(depth_array_path)
 
 finally:
+
+    npzfile = np.load(depth_array_path)    
+    print(len(npzfile.files))
+    #timestamps_array = np.stack(timestamps, axis=0)
+    frames_array = np.zeros((len(npzfile.files), DEPTH_RES[1], DEPTH_RES[0], 3), dtype=np.uint8)
+    i = 0
+    for key, value in npzfile.items():
+        frames_array[i,:,:,:] = value
+
     extrinsic_params_array = np.stack(extrinsic_params, axis=0)
     intrinsic_params_array = np.stack(intrinsic_params, axis=0)
     np.savez_compressed(depth_array_path, data=frames_array, 
                         intrinsic_params=intrinsic_params_array, 
                         extrinsic_params=extrinsic_params_array)
+    
+    if os.path.exists(depth_array_path):    # deleting zip archive, .npz is save
+        os.remove(depth_array_path)
 
     colorwriter.release()
     depthwriter.release()
