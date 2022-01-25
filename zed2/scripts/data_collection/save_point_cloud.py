@@ -5,12 +5,13 @@ import os
 import sys
 import tkinter as tk
 from tkinter import messagebox
+from matplotlib import pyplot as plt
 
 def main():
     DURATION = 25                # measurement duration
     LOG_PATH = '../../logs/log_zed'
     RS_MODEL = '2'
-    NAME = '1'           # name of the files
+    NAME = '6'           # name of the files
     DEPTH_RES = [1280, 720]  # desired depth resolution
     DEPTH_RATE = 30         # desired depth frame rate
     COLOR_RES = [1280, 720]  # desired rgb resolution
@@ -34,7 +35,7 @@ def main():
 
     init = sl.InitParameters(camera_resolution = sl.RESOLUTION.HD720,
                                  camera_fps = DEPTH_RATE,
-                                 depth_mode = sl.DEPTH_MODE.ULTRA,
+                                 depth_mode = sl.DEPTH_MODE.QUALITY,
                                  coordinate_units = sl.UNIT.MILLIMETER,
                                  coordinate_system = sl.COORDINATE_SYSTEM.RIGHT_HANDED_Y_UP)
 
@@ -58,9 +59,9 @@ def main():
     for i in range(num_frames):
         print("Frame: " + str(i + 1))
         if zed.grab(runtime_params) == sl.ERROR_CODE.SUCCESS:
-            zed.retrieve_measure(depth_map, sl.MEASURE.XYZ, sl.MEM.CPU)
-            zed.retrieve_image(depth_image, sl.VIEW.DEPTH, sl.MEM.CPU)
-            zed.retrieve_image(rgb_image, sl.VIEW.LEFT, sl.MEM.CPU)
+            zed.retrieve_measure(depth_map, sl.MEASURE.XYZ)
+            zed.retrieve_image(depth_image, sl.VIEW.DEPTH)
+            zed.retrieve_image(rgb_image, sl.VIEW.LEFT)
 
             cloud = depth_map.get_data()
             depth_frame = depth_image.get_data()
@@ -68,7 +69,8 @@ def main():
             
             colorwriter.write(color_frame[:,:,:-1])
             depthwriter.write(depth_frame[:,:,:-1])
-            cloud_uint16 = np.uint16(cloud)
+            cloud[:,:,2] = - cloud[:,:,2] 
+            cloud_uint16 = cloud.astype(np.uint16)
 
             K = np.array([[cam_params.left_cam.fx, 0, cam_params.left_cam.cx],
               [0, cam_params.left_cam.fy, cam_params.left_cam.cy],
@@ -82,8 +84,9 @@ def main():
             intrinsic_params_array[i,:,:] = K
             frames_array[i,:,:,:] = cloud_uint16
 
-            cv2.imshow("ZED | rgb_image", color_frame)
+            cv2.imshow("ZED | rgb_image", depth_frame)
             cv2.waitKey(1)
+
 
     colorwriter.release()
     depthwriter.release()

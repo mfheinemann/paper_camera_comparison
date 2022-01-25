@@ -12,7 +12,7 @@ def main():
 
     init = sl.InitParameters(camera_resolution = sl.RESOLUTION.HD720,
                                  camera_fps = depth_fps,
-                                 depth_mode = sl.DEPTH_MODE.ULTRA,
+                                 depth_mode = sl.DEPTH_MODE.QUALITY,
                                  coordinate_units = sl.UNIT.MILLIMETER,
                                  coordinate_system = sl.COORDINATE_SYSTEM.RIGHT_HANDED_Y_UP)
 
@@ -27,7 +27,7 @@ def main():
     # Define target
     shape   = 'rectangle'
     if shape == 'rectangle':
-        center  = np.array([[0.1], [0.05], [1.0]])    # Center of plane
+        center  = np.array([[0.0], [0.0], [2.983]])    # Center of plane
         size    = np.array([0.5, 0.5])               # (width, height) in m
         angle   = 0.0                                # In radiants
     elif shape == 'circle':
@@ -41,14 +41,13 @@ def main():
     cam_params = zed.get_camera_information().calibration_parameters
     pose = sl.Pose()
     depth_image = sl.Mat()
-    depth_map = sl.Mat()
-    b =[]
+    rgb_image = sl.Mat()
     key = ''
 
     while key != 113:
         if zed.grab(runtime_params) == sl.ERROR_CODE.SUCCESS:
             zed.retrieve_image(depth_image, sl.VIEW.DEPTH)
-            zed.retrieve_measure(depth_map, sl.MEASURE.DEPTH)
+            zed.retrieve_image(rgb_image, sl.VIEW.LEFT)
 
             intrinsic_params = np.array([[cam_params.left_cam.fx, 0, cam_params.left_cam.cx],
               [0, cam_params.left_cam.fy, cam_params.left_cam.cy],
@@ -58,15 +57,15 @@ def main():
             t = pose.get_translation(sl.Translation()).get()            
             extrinsic_params = np.concatenate((R, np.array([t]).T), axis=1)
         
-            image = depth_image.get_data()
+            image = rgb_image.get_data()
+            image_mask = target.give_cropped_image(image, extrinsic_params, intrinsic_params,
+                                            shape, center, size, angle)
             image_with_target = target.show_target_in_image(image, extrinsic_params, intrinsic_params,
                                             shape, center, size, angle)
-            
-            map = depth_map.get_data()
-            a = map.shape
-            b.append(map[int(a[0]/2), int(a[1]/2)])
-            print(np.mean(b)/1000)
-            cv2.imshow("ZED | image", image_with_target)
+
+            image_concat = np.vstack((image_with_target, image_mask))
+
+            cv2.imshow("ZED | image", image_concat)
             key = cv2.waitKey(1)
 
 
