@@ -27,7 +27,7 @@ def main():
     # Define target
     shape   = 'rectangle'
     if shape == 'rectangle':
-        center  = np.array([[0.0], [0.0], [1.0]])    # Center of plane
+        center  = np.array([[0.1], [0.05], [1.0]])    # Center of plane
         size    = np.array([0.5, 0.5])               # (width, height) in m
         angle   = 0.0                                # In radiants
     elif shape == 'circle':
