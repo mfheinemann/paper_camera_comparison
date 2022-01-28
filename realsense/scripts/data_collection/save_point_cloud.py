@@ -14,7 +14,7 @@ import sys
 DURATION = 50            # measurement duration
 LOG_PATH = '../../logs/log_rs'
 RS_MODEL = 'd455'
-NAME = '10'           # name of the files
+NAME = 'test'           # name of the files
 DEPTH_RES = [1280, 720]  # desired depth resolution
 DEPTH_RATE = 30         # desired depth frame rate
 COLOR_RES = [1280, 720]  # desired rgb resolution
@@ -132,6 +132,7 @@ finally:
     i = 0
     for key, value in npzfile.items():
         frames_array[i,:,:,:] = value
+        i += 1
 
     extrinsic_params_array = np.stack(extrinsic_params, axis=0)
     intrinsic_params_array = np.stack(intrinsic_params, axis=0)
