@@ -11,6 +11,7 @@ class CropTarget():
         self.rot_points  = []
         self.circle_center      = 0
         self.circle_radius      = 0
+        self._offset_rot_axis = 0.063
 
     def create_trans_matrix(self, x, z):
         trans_matrix = np.array([[1, x[0], 0],
@@ -35,9 +36,9 @@ class CropTarget():
                           [0, 1, 0],
                           [-m.sin(angle_in), 0, m.cos(angle_in)]])
         translation_matrix_1 = self.create_trans_matrix(
-                                center_in[0], center_in[2])
+                                center_in[0], center_in[2] + self._offset_rot_axis)
         translation_matrix_2 = self.create_trans_matrix(
-                                -center_in[0], -center_in[2])
+                                -center_in[0], -(center_in[2] + self._offset_rot_axis))
         full_rotation = np.matmul(translation_matrix_1, rot_y)
         full_rotation = np.matmul(full_rotation, translation_matrix_2)
 

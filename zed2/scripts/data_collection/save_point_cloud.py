@@ -9,18 +9,17 @@ from matplotlib import pyplot as plt
 
 def main():
     DURATION = 25                # measurement duration
-    LOG_PATH = '../../logs/log_zed'
-    RS_MODEL = '2'
-    NAME = '6'           # name of the files
+    LOG_PATH = '../../logs/log_zed2'
+    NAME = '14'           # name of the files
     DEPTH_RES = [1280, 720]  # desired depth resolution
     DEPTH_RATE = 30         # desired depth frame rate
     COLOR_RES = [1280, 720]  # desired rgb resolution
     COLOR_RATE = 30         # desired rgb frame rate
     num_frames = DURATION * DEPTH_RATE
 
-    color_path = LOG_PATH + RS_MODEL + '_' + NAME + '_rgb.avi'
-    depth_path = LOG_PATH + RS_MODEL + '_' + NAME + '_depth.avi'
-    depth_array_path = LOG_PATH + RS_MODEL + '_' + NAME + '_pc'
+    color_path = LOG_PATH + '_' + NAME + '_rgb.avi'
+    depth_path = LOG_PATH + '_' + NAME + '_depth.avi'
+    depth_array_path = LOG_PATH + '_' + NAME + '_pc'
     colorwriter = cv2.VideoWriter(color_path, cv2.VideoWriter_fourcc(*'XVID'), COLOR_RATE, (COLOR_RES[0], COLOR_RES[1]), 1)
     depthwriter = cv2.VideoWriter(depth_path, cv2.VideoWriter_fourcc(*'XVID'), DEPTH_RATE, (DEPTH_RES[0], DEPTH_RES[1]), 1)
 

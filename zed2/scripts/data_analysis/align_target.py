@@ -27,13 +27,13 @@ def main():
     # Define target
     shape   = 'rectangle'
     if shape == 'rectangle':
-        center  = np.array([[0.0], [0.0], [2.983]])    # Center of plane
-        size    = np.array([0.5, 0.5])               # (width, height) in m
-        angle   = 0.0                                # In radiants
+        center  = np.array([[0.0], [0.0], [1.985]])    # Center of plane
+        size    = np.array([0.5, 0.5])                 # (width, height) in m
+        angle   = np.radians(0.0)                      # In degrees
     elif shape == 'circle':
-        center  = np.array([[1.0], [0.0], [3.0]])   # Center of shpere
-        size    = 0.2                               # Radius in m
-        angle   = 0.0
+        center  = np.array([[0.0], [0.0], [1.985]])    # Center of shperec
+        size    = 0.139 / 2.0                          # Radius in m
+        angle   = np.radians(0.0)
     else:
         print("Not a valid shape!")
 
