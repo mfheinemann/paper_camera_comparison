@@ -13,18 +13,19 @@ def main():
     data = array['data']
     extrinsic_params_data = array['extrinsic_params']
     intrinsic_params_data = array['intrinsic_params']
-    image = data[0,:,:,2]
+    image = data[5,:,:,2]
     extrinsic_params = extrinsic_params_data[0, :, :]
     intrinsic_params = intrinsic_params_data[0, :, :]
 
     # Define target
     shape   = 'rectangle'
+    offset = -0.02  # camera specific offset from ground truth
     if shape == 'rectangle':
-        center  = np.array([[0.0], [0.0], [3.985]])    # Center of plane
+        center  = np.array([[0.0], [0.0], [4.0 + offset]])    # Center of plane
         size    = np.array([0.5, 0.5])               # (width, height) in m
         angle   = 0.0                                # In degrees
     elif shape == 'circle':
-        center  = np.array([[1.0], [0.0], [3.0]])   # Center of shpere
+        center  = np.array([[1.0], [0.0], [3.0 + offset]])   # Center of shpere
         size    = 0.2                               # Radius in m
         angle   = 0.0
     else:

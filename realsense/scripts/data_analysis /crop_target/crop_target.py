@@ -100,10 +100,10 @@ class CropTarget():
         self.project_shape(shape_in, center_in, size_in, angle_in, ex_params, in_params)
 
         if shape_in == 'rectangle':
-            cv2.line(image,self.edge_points[0],self.edge_points[1],(255,0,0),2)
-            cv2.line(image,self.edge_points[1],self.edge_points[2],(255,0,0),2)
-            cv2.line(image,self.edge_points[2],self.edge_points[3],(255,0,0),2)
-            cv2.line(image,self.edge_points[3],self.edge_points[0],(255,0,0),2)
+            cv2.line(image,self.edge_points[0],self.edge_points[1],(0,255,0),2)
+            cv2.line(image,self.edge_points[1],self.edge_points[2],(0,255,0),2)
+            cv2.line(image,self.edge_points[2],self.edge_points[3],(0,255,0),2)
+            cv2.line(image,self.edge_points[3],self.edge_points[0],(0,255,0),2)
         elif shape_in == 'circle':
             cv2.circle(image, self.circle_center, self.circle_radius,(0, 0, 255), 2)
         else:

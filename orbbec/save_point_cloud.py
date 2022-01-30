@@ -1,7 +1,10 @@
 # Michel Heinemann
 # save realsense depth data over definied time period in .npz file
 
-import pyrealsense2 as rs
+from openni import openni2
+from openni import _openni2 as c_api
+import open3d
+
 import numpy as np
 import cv2
 import os
@@ -11,20 +14,36 @@ from tkinter import messagebox
 import sys
 
 
-DURATION = 25            # measurement duration
-LOG_PATH = '../../logs/log_rs'
-RS_MODEL = 'd435'
-NAME = '10'           # name of the files
-DEPTH_RES = [1280, 720]  # desired depth resolution
+DURATION = 50            # measurement duration
+LOG_PATH = '../../logs/log_orbbec'
+RS_MODEL = 'd455'
+NAME = 'test'           # name of the files
+DEPTH_RES = [1280, 800]  # desired depth resolution
 DEPTH_RATE = 30         # desired depth frame rate
 COLOR_RES = [1280, 720]  # desired rgb resolution
 COLOR_RATE = 30         # desired rgb frame rate
 
+# Initialize the depth device
+openni2.initialize()
+dev = openni2.Device.open_any()
 
-pipeline = rs.pipeline()
-config = rs.config()
-config.enable_stream(rs.stream.depth, DEPTH_RES[0], DEPTH_RES[1], rs.format.z16, DEPTH_RATE)
-config.enable_stream(rs.stream.color, COLOR_RES[0], COLOR_RES[1], rs.format.bgr8, COLOR_RATE)
+# Start the depth stream
+depth_stream = dev.create_depth_stream()
+depth_stream.start()
+depth_stream.set_video_mode(c_api.OniVideoMode(pixelFormat = c_api.OniPixelFormat.ONI_PIXEL_FORMAT_DEPTH_1_MM, resolutionX = 1280, resolutionY = 800, fps = 30))
+
+# Start the color stream
+cap = cv2.VideoCapture(4)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 800)
+if not cap.isOpened():
+    print("Cannot open camera")
+    exit()
+
+# pipeline = rs.pipeline()
+# config = rs.config()
+# config.enable_stream(rs.stream.depth, DEPTH_RES[0], DEPTH_RES[1], rs.format.z16, DEPTH_RATE)
+# config.enable_stream(rs.stream.color, COLOR_RES[0], COLOR_RES[1], rs.format.bgr8, COLOR_RATE)
 
 color_path = LOG_PATH + RS_MODEL + '_' + NAME + '_rgb.avi'
 depth_path = LOG_PATH + RS_MODEL + '_' + NAME + '_depth.avi'
@@ -32,7 +51,7 @@ depth_array_path = LOG_PATH + RS_MODEL + '_' + NAME + '_pc'
 colorwriter = cv2.VideoWriter(color_path, cv2.VideoWriter_fourcc(*'XVID'), COLOR_RATE, (COLOR_RES[0], COLOR_RES[1]), 1)
 depthwriter = cv2.VideoWriter(depth_path, cv2.VideoWriter_fourcc(*'XVID'), DEPTH_RATE, (DEPTH_RES[0], DEPTH_RES[1]), 1)
 
-cfg = pipeline.start(config)
+# cfg = pipeline.start(config)
 
 try:
     if os.path.exists(depth_array_path):
@@ -60,19 +79,59 @@ try:
 
         timestamps.append(time.time())
 
-        frames = pipeline.wait_for_frames()
-        depth_frame = frames.get_depth_frame()
-        color_frame = frames.get_color_frame()
-        if not depth_frame or not color_frame:
-            continue
+        # Grab a new depth frame
+        depth_frame = depth_stream.read_frame()
+        depth_frame_data = depth_frame.get_buffer_as_uint16()
+        # Put the depth frame into a numpy array and reshape it
+        depth_image = np.frombuffer(depth_frame_data, dtype=np.uint16)
+        # print(img.shape)
+        depth_image.shape = (1, 800, 1280)
+        # print(img.shape)
+        # img = np.concatenate((img, img, img), axis=0)
+        # print(img.shape)
+        depth_image = np.swapaxes(depth_image, 0, 2)
+        # print(img.shape)
+        depth_image = np.swapaxes(depth_image, 0, 1)
+
+        # frames = pipeline.wait_for_frames()
+        # depth_frame = frames.get_depth_frame()
+        # color_frame = frames.get_color_frame()
+
+        ret, color_frame = cap.read()
+        # if not depth_frame or not color_frame:
+        #     continue
         
         #convert images to numpy arrays
-        depth_image = np.asanyarray(depth_frame.get_data())
-        color_image = np.asanyarray(color_frame.get_data())
+        # depth_image = np.asanyarray(depth_frame.get_data())
+        color_image = np.asanyarray(color_frame)
         depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
         
         colorwriter.write(color_image)
         depthwriter.write(depth_colormap)
+
+        intr = open3d.camera.PinholeCameraIntrinsic()
+        intr.set_intrinsics(1280, 800, 945.028, 945.028, 640, 400)
+
+        #rgbd = open3d.geometry.create_rgbd_image_from_color_and_depth(color_image, depth_image, convert_rgb_to_intensity = False)
+
+        pcd = open3d.geometry.create_point_cloud_from_depth_image(open3d.geometry.Image(depth_image), intr)
+
+        # flip the orientation, so it looks upright, not upside-down
+        pcd.transform([[1,0,0,0],[0,-1,0,0],[0,0,-1,0],[0,0,0,1]])
+
+        open3d.visualization.draw_geometries([pcd])
+
+        pc = np.asanyarray(pcd.points)
+        print(open3d.geometry.Image(depth_image).points)
+        print(depth_image.shape)
+        print(pc.shape)
+        point_cloud_array = np.uint16(pc.reshape((DEPTH_RES[1], DEPTH_RES[0], 3)))
+
+        print(point_cloud_array.shape)
+
+            # visualize the point cloud
+
+        break
 
         pc = rs.pointcloud()
         pc.map_to(color_frame)
@@ -94,7 +153,7 @@ try:
         intr = profile_1.as_video_stream_profile().get_intrinsics() # Downcast to video_stream_profile and fetch intrinsics
 
         profile_2 = cfg.get_stream(rs.stream.color)
-        extr = profile_1.get_extrinsics_to(profile_1)
+        extr = profile_2.get_extrinsics_to(profile_1)
 
         K = np.array([[intr.fx, 0, intr.ppx],
             [0, intr.fy, intr.ppy],
@@ -146,4 +205,3 @@ finally:
     colorwriter.release()
     depthwriter.release()
     cv2.destroyAllWindows()
-    pipeline.stop()

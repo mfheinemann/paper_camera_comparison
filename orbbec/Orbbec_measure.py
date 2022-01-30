@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from turtle import color
+
 import cv2
 import numpy as np
 from openni import openni2
@@ -12,10 +12,12 @@ dev = openni2.Device.open_any()
 # Start the depth stream
 depth_stream = dev.create_depth_stream()
 depth_stream.start()
-depth_stream.set_video_mode(c_api.OniVideoMode(pixelFormat = c_api.OniPixelFormat.ONI_PIXEL_FORMAT_DEPTH_1_MM, resolutionX = 640, resolutionY = 480, fps = 30))
+depth_stream.set_video_mode(c_api.OniVideoMode(pixelFormat = c_api.OniPixelFormat.ONI_PIXEL_FORMAT_DEPTH_1_MM, resolutionX = 1280, resolutionY = 800, fps = 30))
 
 # Start the color stream
 cap = cv2.VideoCapture(4)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 800)
 if not cap.isOpened():
     print("Cannot open camera")
     exit()
@@ -49,7 +51,7 @@ while True:
                 # Put the depth frame into a numpy array and reshape it
                 img = np.frombuffer(frame_data, dtype=np.uint16)
                 # print(img.shape)
-                img.shape = (1, 480, 640)
+                img.shape = (1, 800, 1280)
                 # print(img.shape)
                 # img = np.concatenate((img, img, img), axis=0)
                 # print(img.shape)

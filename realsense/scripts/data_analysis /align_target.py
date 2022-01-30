@@ -1,3 +1,4 @@
+from tkinter import OFF
 import numpy as np
 import cv2
 from crop_target.crop_target import CropTarget
@@ -11,6 +12,7 @@ def main():
     COLOR_RES = [1280, 720]  # desired rgb resolution
     COLOR_RATE = 30         # desired rgb frame rate
     SHAPE   = 'rectangle'   # 'rectangle' 'circle'
+    OFFSET = -0.02  # camera specific offset from ground truth
 
     pipeline = rs.pipeline()
     config = rs.config()
@@ -23,12 +25,12 @@ def main():
 
     # Define target
     if SHAPE == 'rectangle':
-        center  = np.array([[0.0], [0.0], [4.985]])    # Center of plane
+        center  = np.array([[0.0], [0.0], [0.5 + OFFSET]])    # Center of plane
         size    = np.array([0.5, 0.5])               # (width, height) in m
         angle   = np.deg2rad(0)                     # In degrees
     elif SHAPE == 'circle':
-        center  = np.array([[1.0], [0.0], [3.0]])   # Center of shpere
-        size    = 0.2                               # Radius in m
+        center  = np.array([[0.0], [0.0], [2.0 + OFFSET]])   # Center of shpere
+        size    = 0.139/2.0                               # Radius in m
         angle   = 0.0
     else:
         print("Not a valid shape!")
@@ -42,8 +44,8 @@ def main():
     intr_color = profile_color.as_video_stream_profile().get_intrinsics()
     print(intr_depth)
 
-    extr_depth = profile_color.get_extrinsics_to(profile_depth)
-    extr_color = profile_color.get_extrinsics_to(profile_color)
+    extr_depth = profile_depth.get_extrinsics_to(profile_depth)
+    extr_color = profile_depth.get_extrinsics_to(profile_color)
     print(extr_depth)
 
     key = ''
@@ -62,6 +64,7 @@ def main():
 
     R = np.array(extr_color.rotation)
     R = R.reshape(3,3)
+    #R = np.swapaxes(R, 1, 0) # only requiered for D435
     t = np.array(extr_color.translation)
     t = t.reshape(3,1)     
     extrinsic_params_color = np.concatenate((R, t), axis=1)
