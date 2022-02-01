@@ -5,13 +5,20 @@ import copy
 
 class CropTarget():
 
-    def __init__(self):
-        self.mask        = np.array([])
-        self.edge_points = []
-        self.rot_points  = []
-        self.circle_center      = 0
-        self.circle_radius      = 0
+    def __init__(self, shape, center, size, angle, edge_width):
+        self.shape      = shape
+        self.center     = center
+        self.size       = size
+        self.angle      = angle
+        self.edge_width = edge_width
+
+        self.mask          = np.array([])
+        self.edge_points   = []
+        self.rot_points    = []
+        self.circle_center = 0
+        self.circle_radius = 0
         self._offset_rot_axis = 0.063
+
 
     def create_trans_matrix(self, x, z):
         trans_matrix = np.array([[1, x[0], 0],
@@ -20,25 +27,25 @@ class CropTarget():
         return trans_matrix
 
     
-    def calculate_edge_points(self, center_in, size_in, angle_in):
+    def calculate_edge_points(self):
         '''
             Simplified general rotation around shifted axis
         
             T_1(x,z)*R_y*T_2(x,z)*(Points) 
         '''
 
-        points_3D = np.array([[center_in[0] - size_in[0]/2, center_in[1] - size_in[1]/2, center_in[2]],
-                                [center_in[0] - size_in[0]/2, center_in[1] + size_in[1]/2, center_in[2]],
-                                [center_in[0] + size_in[0]/2, center_in[1] + size_in[1]/2, center_in[2]],
-                                [center_in[0] + size_in[0]/2, center_in[1] - size_in[1]/2, center_in[2]]])
+        points_3D = np.array([[self.center[0] - self.size[0]/2, self.center[1] - self.size[1]/2, self.center[2]],
+                                [self.center[0] - self.size[0]/2, self.center[1] + self.size[1]/2, self.center[2]],
+                                [self.center[0] + self.size[0]/2, self.center[1] + self.size[1]/2, self.center[2]],
+                                [self.center[0] + self.size[0]/2, self.center[1] - self.size[1]/2, self.center[2]]])
 
-        rot_y = np.array([[m.cos(angle_in), 0, m.sin(angle_in)],
+        rot_y = np.array([[m.cos(self.angle), 0, m.sin(self.angle)],
                           [0, 1, 0],
-                          [-m.sin(angle_in), 0, m.cos(angle_in)]])
+                          [-m.sin(self.angle), 0, m.cos(self.angle)]])
         translation_matrix_1 = self.create_trans_matrix(
-                                center_in[0], center_in[2] + self._offset_rot_axis)
+                                self.center[0], self.center[2] + self._offset_rot_axis)
         translation_matrix_2 = self.create_trans_matrix(
-                                -center_in[0], -(center_in[2] + self._offset_rot_axis))
+                                -self.center[0], -(self.center[2] + self._offset_rot_axis))
         full_rotation = np.matmul(translation_matrix_1, rot_y)
         full_rotation = np.matmul(full_rotation, translation_matrix_2)
 
@@ -50,17 +57,17 @@ class CropTarget():
         self.rot_points[1,:] = points_3D[:,1].transpose()
 
 
-    def project_shape(self, shape_in, center_in, size_in, angle_in, ex_params, in_params):
-        if shape_in == 'rectangle':
-            self.calculate_edge_points(center_in, size_in, angle_in)
+    def project_shape(self, ex_params, in_params):
+        if self.shape == 'rectangle':
+            self.calculate_edge_points()
             points_2D, jac = cv2.projectPoints(self.rot_points, ex_params[:,:-1], ex_params[:,3], in_params,0)
             self.edge_points = np.squeeze(points_2D.astype(int))
 
-        elif shape_in == 'circle':
-            center_2D, jac = cv2.projectPoints(center_in, ex_params[:,:-1], ex_params[:,3], in_params,0)
+        elif self.shape == 'circle':
+            center_2D, jac = cv2.projectPoints(self.center, ex_params[:,:-1], ex_params[:,3], in_params,0)
             self.circle_center = tuple(np.squeeze(center_2D.astype(int)))
 
-            top_3D = center_in + np.array([[0], [size_in], [0]])
+            top_3D = self.center + np.array([[0], [self.size], [0]])
             top_2D, jac = cv2.projectPoints(top_3D, ex_params[:,:-1], ex_params[:,3], in_params, 0)
             top_2D = tuple(np.squeeze(top_2D.astype(int)))
 
@@ -71,50 +78,59 @@ class CropTarget():
             print("Invalid shape!")
             
 
-    def create_mask(self, shape_in):
-        if shape_in == 'rectangle':
+    def create_mask(self, image_dim, increase_edges = False):
+        self.mask = np.full((image_dim[0], image_dim[1]), 0, dtype=np.uint8)
+
+        if self.shape == 'rectangle':
             cv2.fillConvexPoly(self.mask, self.edge_points, (255, 255, 255))
-        elif shape_in == 'circle':
+
+            # Increase Polygon edges
+            if increase_edges == True:
+                cv2.line(self.mask,self.edge_points[0],self.edge_points[1],(255,255,255),self.edge_width)
+                cv2.line(self.mask,self.edge_points[1],self.edge_points[2],(255,255,255),self.edge_width)
+                cv2.line(self.mask,self.edge_points[2],self.edge_points[3],(255,255,255),self.edge_width)
+                cv2.line(self.mask,self.edge_points[3],self.edge_points[0],(255,255,255),self.edge_width)
+        elif self.shape == 'circle':
             cv2.circle(self.mask, self.circle_center, self.circle_radius,(255, 255, 255), -1)
         else:
             print("Invalid shape!")
 
 
-    def give_mask(self, ex_params, in_params, shape_in, center_in, size_in, angle_in):
-        self.project_shape(shape_in, center_in, size_in, angle_in, ex_params, in_params)
-        self.create_mask(shape_in)
+    def give_mask(self, image_dim, ex_params, in_params, increase_edges=False):
+        self.project_shape(ex_params, in_params)
+        self.create_mask(image_dim)
+        mask_out = self.crop_to_target(self.mask, ex_params, in_params, increase_edges)
 
-        return self.mask
-
-
-    def give_cropped_image(self, image, ex_params, in_params, shape_in, center_in, size_in, angle_in):
-        self.reset_values(image)
-        self.project_shape(shape_in, center_in, size_in, angle_in, ex_params, in_params)
-        self.create_mask(shape_in)
-
-        return cv2.bitwise_and(image, image, mask=self.mask)
+        return mask_out
 
 
-    def show_target_in_image(self, image, ex_params, in_params, shape_in, center_in, size_in, angle_in):
-        self.reset_values(image)
-        self.project_shape(shape_in, center_in, size_in, angle_in, ex_params, in_params)
+    def show_target_in_image(self, image, ex_params, in_params):
+        self.project_shape(ex_params, in_params)
 
-        if shape_in == 'rectangle':
-            cv2.line(image,self.edge_points[0],self.edge_points[1],(0,255,0),2)
-            cv2.line(image,self.edge_points[1],self.edge_points[2],(0,255,0),2)
-            cv2.line(image,self.edge_points[2],self.edge_points[3],(0,255,0),2)
-            cv2.line(image,self.edge_points[3],self.edge_points[0],(0,255,0),2)
-        elif shape_in == 'circle':
-            cv2.circle(image, self.circle_center, self.circle_radius,(0, 0, 255), 2)
+        if self.shape == 'rectangle':
+            cv2.line(image,self.edge_points[0],self.edge_points[1],(255,0,255),2)
+            cv2.line(image,self.edge_points[1],self.edge_points[2],(255,0,255),2)
+            cv2.line(image,self.edge_points[2],self.edge_points[3],(255,0,255),2)
+            cv2.line(image,self.edge_points[3],self.edge_points[0],(255,0,255),2)
+        elif self.shape == 'circle':
+            cv2.circle(image, self.circle_center, self.circle_radius,(255, 0, 255), 2)
         else:
             print("Invalid shape!")
         
         return image
 
+    def crop_to_target(self, image, ex_params, in_params, increase_edges=False):
+        self.project_shape(ex_params, in_params)
 
-    def reset_values(self, image):
-        self.edge_points = []
-        self.rot_points  = []
-        self.circle_center = 0
-        self.circle_radius = 0
-        self.mask   = np.full((image.shape[0], image.shape[1]), 0, dtype=np.uint8)
+        max_x = np.max(self.edge_points[:,0])
+        min_x = np.min(self.edge_points[:,0])
+        max_y = np.max(self.edge_points[:,1])
+        min_y = np.min(self.edge_points[:,1])
+
+        if increase_edges:
+            image_out = image[min_y-self.edge_width : max_y+self.edge_width, 
+                            min_x-self.edge_width : max_x+self.edge_width]
+        else:
+            image_out = image[min_y:max_y, min_x:max_x]
+
+        return image_out

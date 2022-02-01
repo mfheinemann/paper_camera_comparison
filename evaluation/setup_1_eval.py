@@ -8,42 +8,28 @@ import tkinter as tk
 from tkinter import filedialog
 from crop_target.crop_target import CropTarget
 
-
 # Define target
-target = CropTarget()
 shape   = 'rectangle'
-if shape == 'rectangle':
-    center  = np.array([[0.0], [0.0], [1.985]])    # Center of plane
-    size    = np.array([0.48, 0.48])               # (width, height) in m
-    angle   = np.radians(0.0)                     # In degrees
-elif shape == 'circle':
-    center  = np.array([[1.0], [0.0], [3.0]])   # Center of shpere
-    size    = 0.2                               # Radius in m
-    angle   = np.radians(0.0) 
-else:
-    print("Not a valid shape!")
-edge_width  = 5
-
+center  = np.array([[0.0], [0.0], [0.985]])    # Center of plane
+size    = np.array([0.48, 0.48])               # (width, height) in m
+angle   = np.radians(0.0)                      # In degrees
+edge_width = 10
+target  = CropTarget(shape, center, size, angle, edge_width)
 
 def prepare_images(data, extrinsic_params, intrinsic_params):
-    depth_image = data[0,:,:,2]
+    depth_image = data[0,:,:,2].astype(np.int16)
+
     disp = (depth_image * (255.0 / np.max(depth_image))).astype(np.uint8)
     disp = cv2.applyColorMap(disp, cv2.COLORMAP_JET)
-    image_mask = target.give_cropped_image(disp, extrinsic_params, intrinsic_params,
-                                            shape, center, size, angle)
-    image_frame = target.show_target_in_image(disp, extrinsic_params, intrinsic_params,
-                                            shape, center, size, angle)
 
-    edge_masks = target.create_edge_masks(disp, extrinsic_params, intrinsic_params,
-                                            shape, center, size, angle, edge_width)
-    all_edge_masks = cv2.bitwise_or(edge_masks[0], edge_masks[1])
-    all_edge_masks = cv2.bitwise_or(all_edge_masks, edge_masks[2])
-    all_edge_masks = cv2.bitwise_or(all_edge_masks, edge_masks[3])
+    image_dim = depth_image.shape
+    target_cropped  = target.crop_to_target(disp, extrinsic_params, intrinsic_params, True)
+    image_mask      = target.give_mask(image_dim, extrinsic_params, intrinsic_params)
+    image_frame     = target.show_target_in_image(disp, extrinsic_params, intrinsic_params)
 
-    img_edge_mask = cv2.bitwise_and(disp, disp, mask=all_edge_masks)
-    cv2.imshow("Mask on image", image_mask)
+    cv2.imshow("Image cropped with extended edges", target_cropped)
+    cv2.imshow("Mask", image_mask)
     cv2.imshow("Image with target frame", image_frame)
-    cv2.imshow("Edge masks", img_edge_mask)
 
     print("If mask is applied correctly, press 'q'")
     key = cv2.waitKey(0)
@@ -55,39 +41,31 @@ def prepare_images(data, extrinsic_params, intrinsic_params):
         print("Mask applied incorrectly, please adjust target parameters...")
         return False
 
-def run_canny():
-    '''Run Canny'''
 
+def calculate_edge_precision(image):
+    _, thresh = cv2.threshold(image,100,255,cv2.THRESH_BINARY)
+    contours, _ = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
-def calculate_edge_precision(image, edge, extrinsic_params, intrinsic_params):
-    edge_masks = target.create_edge_masks(image, extrinsic_params, intrinsic_params,
-                                        shape, center, size, angle, edge_width)
-    if edge == 'left':
-        img_edge_mask = cv2.bitwise_and(image, image, mask=edge_masks[0])
-    elif edge == 'up':
-        img_edge_mask = cv2.bitwise_and(image, image, mask=edge_masks[1])
-    elif edge == 'right':
-        img_edge_mask = cv2.bitwise_and(image, image, mask=edge_masks[2])
-    elif edge == 'down':
-        img_edge_mask = cv2.bitwise_and(image, image, mask=edge_masks[3])
-    else:
-        print("No valid edge!")
-
-    minV = 30
-    maxV = 100
-    disp = (img_edge_mask * (255.0 / np.max(img_edge_mask))).astype(np.uint8)
-    edges = cv2.Canny(disp,minV,maxV)
-    #disp = cv2.applyColorMap(disp, cv2.COLORMAP_JET)
-    bla = disp + edges
-    cv2.imshow("Canny test",bla)
+    areas = [cv2.contourArea(c) for c in contours]
+    sorted_areas = np.sort(areas)
+    cnt = contours[areas.index(sorted_areas[-1])] #the biggest contour
+    
+    epsilon = 0.15*cv2.arcLength(cnt,True)
+    approx = cv2.approxPolyDP(cnt,epsilon,True)
+    print(approx)
+    print('--------')
+    cv2.polylines(image, [approx], True, 255, 1)
+    cv2.imshow('image', image)
     cv2.waitKey(0)
+
 
 def main():
     root = tk.Tk()
     root.withdraw()
     file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")])
+
     array = np.load(file_path)
-    data = array['data']
+    data  = array['data']
     extrinsic_params_data = array['extrinsic_params']
     intrinsic_params_data = array['intrinsic_params']
     extrinsic_params = extrinsic_params_data[0, :, :]
@@ -97,30 +75,30 @@ def main():
     if is_mask_correct == False:
         return
 
-    data_shape = data.shape
-    num_frames = data_shape[0]
-    mask = target.give_mask(extrinsic_params, intrinsic_params,
-                                            shape, center, size, angle)
+    num_frames = data.shape[0]
+    image_dim = data[0,:,:,2].shape
+    mask = target.give_mask(image_dim, extrinsic_params, intrinsic_params)
+    mask_bool = np.bool_(mask)
 
- 
     bias_array = []
     precision_array = []
     for i in range(num_frames):
-        depth_image = data[i,:,:,2]
-        mean_depth = cv2.mean(depth_image, mask)[0] / 1000
+        depth_image = data[i,:,:,2].astype(np.int16)
+        image_cropped = target.crop_to_target(depth_image, extrinsic_params, intrinsic_params)
 
+        mean_depth = cv2.mean(image_cropped, mask)[0]/1000
         bias = center[2] - mean_depth
         bias_array.append(bias[0])
-    
-        diff_matrix = depth_image/1000 - mean_depth
-        precision = m.sqrt(np.sum(np.multiply(diff_matrix, diff_matrix)))
+
+        diff_array= image_cropped[mask_bool]/1000 - mean_depth
+        precision = m.sqrt(np.sum(np.multiply(diff_array, diff_array)))
         precision_array.append(precision)
 
-        #calculate_edge_precision(depth_image, 'left', extrinsic_params, intrinsic_params)
+        image_cropped_with_edges = target.crop_to_target(depth_image, extrinsic_params, intrinsic_params, True)
+        display2 = (image_cropped_with_edges * (255.0 / np.max(image_cropped_with_edges))).astype(np.uint8)
+        calculate_edge_precision(display2)
         
         
-
-
     total_bias = sum(bias_array) / len(bias_array)
     total_precision = sum(precision_array) / len(precision_array)
 

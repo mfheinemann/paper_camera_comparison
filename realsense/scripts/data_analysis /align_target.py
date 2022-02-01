@@ -34,8 +34,9 @@ def main():
         angle   = 0.0
     else:
         print("Not a valid shape!")
+    edge_width = 0
+    target  = CropTarget(SHAPE, center, size, angle, edge_width)
 
-    target = CropTarget()
     profile_depth = cfg.get_stream(rs.stream.depth) # Fetch stream profile for depth stream
     profile_color = cfg.get_stream(rs.stream.color)
     # profile_inf1 = cfg.get_stream(rs.stream.infrared, 1)
@@ -78,10 +79,8 @@ def main():
 
         depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
     
-        depth_image_with_target = target.show_target_in_image(depth_colormap, extrinsic_params_depth, intrinsic_params_depth,
-                                        SHAPE, center, size, angle)
-        color_image_with_target = target.show_target_in_image(color_image, extrinsic_params_color, intrinsic_params_color,
-                                        SHAPE, center, size, angle)
+        depth_image_with_target = target.show_target_in_image(depth_colormap, extrinsic_params_depth, intrinsic_params_depth)
+        color_image_with_target = target.show_target_in_image(color_image, extrinsic_params_color, intrinsic_params_color)
         cv2.imshow("RealSense | depth image", depth_image_with_target)
         cv2.imshow("RealSense | color image", color_image_with_target)
         key = cv2.waitKey(1)

@@ -64,7 +64,7 @@ camRight.out.link(stereo.right)
 stereo.disparity.link(xoutDisparity.input)
 
 streams = ["disparity", "depth"]
-target = CropTarget()
+
 
 # Define target
 shape   = 'rectangle'
@@ -78,6 +78,8 @@ elif shape == 'circle':
     angle   = 0.0
 else:
     print("Not a valid shape!")
+edge_width = 0
+target  = CropTarget(shape, center, size, angle, edge_width)
 
 print("Creating DepthAI device")
 with dai.Device(pipeline) as device:
@@ -95,8 +97,7 @@ with dai.Device(pipeline) as device:
         t = np.zeros((3,1))         
         extrinsic_params = np.concatenate((R, t), axis=1)
     
-        image_with_target = target.give_cropped_image(disp_frame, extrinsic_params, intrinsic_params,
-                                        shape, center, size, angle)
+        image_with_target = target.crop_to_target(disp_frame, extrinsic_params, intrinsic_params)
         cv2.imshow("OAK-D | image", image_with_target)
 
         if cv2.waitKey(1) == ord("q"):

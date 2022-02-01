@@ -36,8 +36,9 @@ def main():
         angle   = np.radians(0.0)
     else:
         print("Not a valid shape!")
+    edge_width = 0
+    target  = CropTarget(shape, center, size, angle, edge_width)
 
-    target = CropTarget()
     cam_params = zed.get_camera_information().calibration_parameters
     pose = sl.Pose()
     depth_image = sl.Mat()
@@ -58,10 +59,8 @@ def main():
             extrinsic_params = np.concatenate((R, np.array([t]).T), axis=1)
         
             image = rgb_image.get_data()
-            image_mask = target.give_cropped_image(image, extrinsic_params, intrinsic_params,
-                                            shape, center, size, angle)
-            image_with_target = target.show_target_in_image(image, extrinsic_params, intrinsic_params,
-                                            shape, center, size, angle)
+            image_mask = target.crop_to_target(image, extrinsic_params, intrinsic_params)
+            image_with_target = target.show_target_in_image(image, extrinsic_params, intrinsic_params)
 
             image_concat = np.vstack((image_with_target, image_mask))
 
