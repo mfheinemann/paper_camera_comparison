@@ -7,6 +7,7 @@ import cv2
 import tkinter as tk
 from tkinter import filedialog
 from crop_target.crop_target import CropTarget
+import edge_precision.edge_precision as ep
 
 # Define target
 shape   = 'rectangle'
@@ -15,6 +16,56 @@ size    = np.array([0.48, 0.48])               # (width, height) in m
 angle   = np.radians(0.0)                      # In degrees
 edge_width = 10
 target  = CropTarget(shape, center, size, angle, edge_width)
+
+
+def main():
+    root = tk.Tk()
+    root.withdraw()
+    file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")])
+
+    array = np.load(file_path)
+    data  = array['data']
+    extrinsic_params_data = array['extrinsic_params']
+    intrinsic_params_data = array['intrinsic_params']
+    extrinsic_params = extrinsic_params_data[0, :, :]
+    intrinsic_params = intrinsic_params_data[0, :, :]
+
+    is_mask_correct = prepare_images(data, extrinsic_params, intrinsic_params)
+    if is_mask_correct == False:
+        return
+
+    num_frames = data.shape[0]
+    image_dim = data[0,:,:,2].shape
+    mask = target.give_mask(image_dim, extrinsic_params, intrinsic_params)
+    mask_bool = np.bool_(mask)
+
+    bias = np.zeros((num_frames, 1))
+    mean_of_squares = np.zeros((num_frames, 1))
+    edge_precision = np.zeros((num_frames, 4))
+    for i in range(num_frames):
+        depth_image = data[i,:,:,2].astype(np.int16)
+        image_cropped = target.crop_to_target(depth_image, extrinsic_params, intrinsic_params)
+
+        mean_depth = cv2.mean(image_cropped, mask)[0]/1000
+        bias[i] = center[2] - mean_depth
+
+        mean_of_squares[i] = np.mean(np.multiply(image_cropped[mask_bool]/1000, image_cropped[mask_bool]/1000))
+
+        # Correct target to real size to get edges
+        target.size = np.array([0.50, 0.50]) 
+        edge_precision[i, :] = ep.get_edge_precision(target, depth_image, extrinsic_params, intrinsic_params)
+        target.size = size        
+    
+    total_bias = np.mean(bias)
+    total_precision = m.sqrt(np.mean(mean_of_squares) - mean_depth**2)
+    total_edge_precision = np.mean(edge_precision, axis=0)
+
+    print("Bias: {:0.3f}, Precision: {:0.3f}".format(total_bias, total_precision))
+    print("Edge Precision: {:0.3f} (left), {:0.3f} (down), {:0.3f} (right), {:0.3f} (up)".format(
+        total_edge_precision[0], total_edge_precision[1],total_edge_precision[2], total_edge_precision[3]))
+
+    cv2.destroyAllWindows()
+
 
 def prepare_images(data, extrinsic_params, intrinsic_params):
     depth_image = data[0,:,:,2].astype(np.int16)
@@ -40,70 +91,6 @@ def prepare_images(data, extrinsic_params, intrinsic_params):
     else:
         print("Mask applied incorrectly, please adjust target parameters...")
         return False
-
-
-def calculate_edge_precision(image):
-    _, thresh = cv2.threshold(image,100,255,cv2.THRESH_BINARY)
-    contours, _ = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-
-    areas = [cv2.contourArea(c) for c in contours]
-    sorted_areas = np.sort(areas)
-    cnt = contours[areas.index(sorted_areas[-1])] #the biggest contour
-    
-    epsilon = 0.15*cv2.arcLength(cnt,True)
-    approx = cv2.approxPolyDP(cnt,epsilon,True)
-    print(approx)
-    print('--------')
-    cv2.polylines(image, [approx], True, 255, 1)
-    cv2.imshow('image', image)
-    cv2.waitKey(0)
-
-
-def main():
-    root = tk.Tk()
-    root.withdraw()
-    file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")])
-
-    array = np.load(file_path)
-    data  = array['data']
-    extrinsic_params_data = array['extrinsic_params']
-    intrinsic_params_data = array['intrinsic_params']
-    extrinsic_params = extrinsic_params_data[0, :, :]
-    intrinsic_params = intrinsic_params_data[0, :, :]
-
-    is_mask_correct = prepare_images(data, extrinsic_params, intrinsic_params)
-    if is_mask_correct == False:
-        return
-
-    num_frames = data.shape[0]
-    image_dim = data[0,:,:,2].shape
-    mask = target.give_mask(image_dim, extrinsic_params, intrinsic_params)
-    mask_bool = np.bool_(mask)
-
-    bias_array = []
-    precision_array = []
-    for i in range(num_frames):
-        depth_image = data[i,:,:,2].astype(np.int16)
-        image_cropped = target.crop_to_target(depth_image, extrinsic_params, intrinsic_params)
-
-        mean_depth = cv2.mean(image_cropped, mask)[0]/1000
-        bias = center[2] - mean_depth
-        bias_array.append(bias[0])
-
-        diff_array= image_cropped[mask_bool]/1000 - mean_depth
-        precision = m.sqrt(np.sum(np.multiply(diff_array, diff_array)))
-        precision_array.append(precision)
-
-        image_cropped_with_edges = target.crop_to_target(depth_image, extrinsic_params, intrinsic_params, True)
-        display2 = (image_cropped_with_edges * (255.0 / np.max(image_cropped_with_edges))).astype(np.uint8)
-        calculate_edge_precision(display2)
-        
-        
-    total_bias = sum(bias_array) / len(bias_array)
-    total_precision = sum(precision_array) / len(precision_array)
-
-    print("Bias: {:0.3f}, Precision: {:0.3f}".format(total_bias, total_precision))
-    cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
