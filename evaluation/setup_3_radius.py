@@ -60,7 +60,7 @@ def prepare_images(data, extrinsic_params, intrinsic_params):
     disp = cv2.applyColorMap(disp, cv2.COLORMAP_JET)
 
     image_dim = depth_image.shape
-    target_cropped  = target.crop_to_target(disp, extrinsic_params, intrinsic_params, True)
+    target_cropped  = target.crop_to_target(disp, extrinsic_params, intrinsic_params)
     image_mask      = target.give_mask(image_dim, extrinsic_params, intrinsic_params)
     image_frame     = target.show_target_in_image(disp, extrinsic_params, intrinsic_params)
 

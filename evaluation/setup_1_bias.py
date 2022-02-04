@@ -11,7 +11,7 @@ import edge_precision.edge_precision as ep
 
 # Define target
 shape   = 'rectangle'
-center  = np.array([[0.0], [0.0], [0.985]])    # Center of plane
+center  = np.array([[0.0], [0.0], [3.985]])    # Center of plane
 size    = np.array([0.48, 0.48])               # (width, height) in m
 angle   = np.radians(0.0)                      # In degrees
 edge_width = 10
@@ -22,6 +22,10 @@ def main():
     root = tk.Tk()
     root.withdraw()
     file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")])
+
+    print("Opening file: ", file_path, "\n")
+    print("Experiment configuration\nDistance:\t{:.3f}m\nTarget size:\t({:.3f},{:.3f})m\nAngle:\t\t{:.3f}rad\nEdge width:\t{}px".format(
+         np.squeeze(center[2]), np.squeeze(size[0]), np.squeeze(size[1]), angle, edge_width))
 
     array = np.load(file_path)
     data  = array['data']
@@ -40,24 +44,24 @@ def main():
     mask_bool = np.bool_(mask)
 
     bias = np.zeros((num_frames, 1))
-    mean_of_squares = np.zeros((num_frames, 1))
+    precision = np.zeros((num_frames, 1))
     edge_precision = np.zeros((num_frames, 4))
     for i in range(num_frames):
-        depth_image = data[i,:,:,2].astype(np.int16)
+        depth_image = data[i,:,:,2].astype(np.int16)/1000
         image_cropped = target.crop_to_target(depth_image, extrinsic_params, intrinsic_params)
 
-        mean_depth = cv2.mean(image_cropped, mask)[0]/1000
-        bias[i] = center[2] - mean_depth
+        mean_depth = cv2.mean(image_cropped, mask)[0]
+        bias[i] = np.abs(center[2] - mean_depth)
 
-        mean_of_squares[i] = np.mean(np.multiply(image_cropped[mask_bool]/1000, image_cropped[mask_bool]/1000))
+        precision[i] = np.std(image_cropped[mask_bool])
 
         # Correct target to real size to get edges
         target.size = np.array([0.50, 0.50]) 
-        edge_precision[i, :] = ep.get_edge_precision(target, depth_image, extrinsic_params, intrinsic_params)
+        edge_precision[i, :] = ep.get_edge_precision(target, depth_image, mean_depth, extrinsic_params, intrinsic_params)
         target.size = size        
     
     total_bias = np.mean(bias)
-    total_precision = m.sqrt(np.mean(mean_of_squares) - mean_depth**2)
+    total_precision = np.mean(precision)
     total_edge_precision = np.mean(edge_precision, axis=0)
 
     print("Bias: {:0.3f}, Precision: {:0.3f}".format(total_bias, total_precision))
@@ -85,7 +89,7 @@ def prepare_images(data, extrinsic_params, intrinsic_params):
     print("If mask is applied correctly, press 'q'")
     key = cv2.waitKey(0)
     if key == 113:
-        print("Mask applied correctly")
+        print("Mask applied correctly\n")
         cv2.destroyAllWindows()
         return True
     else:

@@ -12,6 +12,13 @@ def calculate_edge_precision(target, edge_masks, img_cnt, extrinsic_params, intr
         edge_mask_cropped = target.crop_to_target(edge_mask, extrinsic_params, intrinsic_params, True)
         img_cnt_edges = cv2.bitwise_and(img_cnt, img_cnt, mask=edge_mask_cropped)
 
+
+        #plt.figure(1)
+        #plt.imshow(img_cnt)
+        #plt.show()
+        #cv2.imshow("edge", img_cnt_edges)
+        #cv2.waitKey(0)
+
         # Return non-zero pixel coordinates in mask
         pixel = np.argwhere(img_cnt_edges)
 
@@ -42,12 +49,12 @@ def calculate_edge_precision(target, edge_masks, img_cnt, extrinsic_params, intr
     return results[0,1:]
 
 
-def get_edge_precision(target, image, extrinsic_params, intrinsic_params):
+def get_edge_precision(target, image, mean_depth, extrinsic_params, intrinsic_params):
+    # Crop out target and set pixels further away than target to zero
     image_cropped = target.crop_to_target(image, extrinsic_params, intrinsic_params, True)
-    image_cropped = (image_cropped * (255.0 / np.max(image_cropped))).astype(np.uint8)
+    target_mask   = cv2.inRange(image_cropped, 0.1,  mean_depth + 0.2)
 
-    # Find contours in cropped image and select biggest one
-    contours, _ = cv2.findContours(image_cropped,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(target_mask.astype(np.uint8),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     areas = [cv2.contourArea(c) for c in contours]
     sorted_areas = np.sort(areas)
     idx = areas.index(sorted_areas[-1])
