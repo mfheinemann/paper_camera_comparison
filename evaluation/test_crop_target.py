@@ -19,9 +19,9 @@ def main():
 
     # Define target
     shape   = 'rectangle'
-    offset = -0.02  # camera specific offset from ground truth
+    offset = -0.035  # camera specific offset from ground truth
     if shape == 'rectangle':
-        center  = np.array([[0.0], [0.0], [4.0 + offset]])    # Center of plane
+        center  = np.array([[0.0], [0.0], [1.0 + offset]])    # Center of plane
         size    = np.array([0.5, 0.5])               # (width, height) in m
         angle   = 0.0                                # In degrees
     elif shape == 'circle':

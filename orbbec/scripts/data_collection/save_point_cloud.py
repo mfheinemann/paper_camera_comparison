@@ -14,9 +14,9 @@ from tkinter import messagebox
 import sys
 
 
-DURATION = 50            # measurement duration
-LOG_PATH = '../../logs/log_orbbec'
-RS_MODEL = 'd455'
+DURATION = 5            # measurement duration
+LOG_PATH = '../../logs/log_'
+RS_MODEL = 'orbbec'
 NAME = 'test'           # name of the files
 DEPTH_RES = [1280, 800]  # desired depth resolution
 DEPTH_RATE = 30         # desired depth frame rate
@@ -30,20 +30,16 @@ dev = openni2.Device.open_any()
 # Start the depth stream
 depth_stream = dev.create_depth_stream()
 depth_stream.start()
-depth_stream.set_video_mode(c_api.OniVideoMode(pixelFormat = c_api.OniPixelFormat.ONI_PIXEL_FORMAT_DEPTH_1_MM, resolutionX = 1280, resolutionY = 800, fps = 30))
+depth_stream.set_video_mode(c_api.OniVideoMode(pixelFormat = c_api.OniPixelFormat.ONI_PIXEL_FORMAT_DEPTH_1_MM, resolutionX = DEPTH_RES[0], resolutionY = DEPTH_RES[1], fps = DEPTH_RATE))
 
 # Start the color stream
-cap = cv2.VideoCapture(4)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 800)
+cap = cv2.VideoCapture(2)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, COLOR_RES[0])
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, COLOR_RES[1])
 if not cap.isOpened():
     print("Cannot open camera")
     exit()
 
-# pipeline = rs.pipeline()
-# config = rs.config()
-# config.enable_stream(rs.stream.depth, DEPTH_RES[0], DEPTH_RES[1], rs.format.z16, DEPTH_RATE)
-# config.enable_stream(rs.stream.color, COLOR_RES[0], COLOR_RES[1], rs.format.bgr8, COLOR_RATE)
 
 color_path = LOG_PATH + RS_MODEL + '_' + NAME + '_rgb.avi'
 depth_path = LOG_PATH + RS_MODEL + '_' + NAME + '_depth.avi'
@@ -83,27 +79,20 @@ try:
         depth_frame = depth_stream.read_frame()
         depth_frame_data = depth_frame.get_buffer_as_uint16()
         # Put the depth frame into a numpy array and reshape it
+
         depth_image = np.frombuffer(depth_frame_data, dtype=np.uint16)
-        # print(img.shape)
+
         depth_image.shape = (1, 800, 1280)
-        # print(img.shape)
-        # img = np.concatenate((img, img, img), axis=0)
-        # print(img.shape)
+
         depth_image = np.swapaxes(depth_image, 0, 2)
-        # print(img.shape)
+
         depth_image = np.swapaxes(depth_image, 0, 1)
-
-        # frames = pipeline.wait_for_frames()
-        # depth_frame = frames.get_depth_frame()
-        # color_frame = frames.get_color_frame()
-
-        ret, color_frame = cap.read()
-        # if not depth_frame or not color_frame:
-        #     continue
         
-        #convert images to numpy arrays
-        # depth_image = np.asanyarray(depth_frame.get_data())
+        ret, color_frame = cap.read()
+
         color_image = np.asanyarray(color_frame)
+        color_image = cv2.flip(color_image, 1)
+
         depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
         
         colorwriter.write(color_image)
@@ -112,34 +101,21 @@ try:
         intr = open3d.camera.PinholeCameraIntrinsic()
         intr.set_intrinsics(1280, 800, 945.028, 945.028, 640, 400)
 
-        #rgbd = open3d.geometry.create_rgbd_image_from_color_and_depth(color_image, depth_image, convert_rgb_to_intensity = False)
-
-        pcd = open3d.geometry.create_point_cloud_from_depth_image(open3d.geometry.Image(depth_image), intr)
+        # PC form depth image
+        pcd = open3d.geometry.PointCloud()
+        pcd = pcd.create_from_depth_image(open3d.geometry.Image(depth_image), intr, project_valid_depth_only = False)
 
         # flip the orientation, so it looks upright, not upside-down
-        pcd.transform([[1,0,0,0],[0,-1,0,0],[0,0,-1,0],[0,0,0,1]])
-
-        open3d.visualization.draw_geometries([pcd])
+        pcd.transform([[1,0,0,0],[0,-1,0,0],[0,0,-1,0],[0,0,0,-1]])
 
         pc = np.asanyarray(pcd.points)
-        print(open3d.geometry.Image(depth_image).points)
-        print(depth_image.shape)
-        print(pc.shape)
-        point_cloud_array = np.uint16(pc.reshape((DEPTH_RES[1], DEPTH_RES[0], 3)))
 
-        print(point_cloud_array.shape)
+        point_cloud_array = np.int16(1000*pc.reshape((DEPTH_RES[1], DEPTH_RES[0], 3)))
 
-            # visualize the point cloud
+        # visualize point cloud
+        # pcd_visual = pcd.create_from_depth_image(open3d.geometry.Image(depth_image), intr, project_valid_depth_only = True)
 
-        break
-
-        pc = rs.pointcloud()
-        pc.map_to(color_frame)
-        point_cloud = pc.calculate(depth_frame)
-        point_cloud_list = np.asanyarray(point_cloud.get_vertices())
-        pc = point_cloud_list.view(np.float32).reshape((point_cloud_list.size, 3))
-        point_cloud_array = np.uint16(pc.reshape((DEPTH_RES[1], DEPTH_RES[0], 3)))
-        #print(point_cloud_array.shape)
+        # open3d.visualization.draw_geometries([pcd_visual])
 
         with zipfile.ZipFile(depth_array_path, mode='a', compression=zipfile.ZIP_DEFLATED) as zf:
             array_name = str(t_current)
@@ -149,21 +125,16 @@ try:
             zf.write(tmpfilename)
             os.remove(tmpfilename)
 
-        profile_1 = cfg.get_stream(rs.stream.depth) # Fetch stream profile for depth stream
-        intr = profile_1.as_video_stream_profile().get_intrinsics() # Downcast to video_stream_profile and fetch intrinsics
-
-        profile_2 = cfg.get_stream(rs.stream.color)
-        extr = profile_2.get_extrinsics_to(profile_1)
-
-        K = np.array([[intr.fx, 0, intr.ppx],
-            [0, intr.fy, intr.ppy],
+        K = np.array([[970, 0, DEPTH_RES[0]/2],
+            [0, 960, DEPTH_RES[1]/2],
             [0, 0, 1]])
         intrinsic_params.append(K)
-
-        R = np.array(extr.rotation)
-        R = R.reshape(3,3)   
-        t = np.array(extr.translation)
-        t = t.reshape(3,1)             
+        
+        R = np.array([1, 0, 0, 0, 1, 0, 0, 0, 1], dtype=np.float)
+        R = R.reshape(3,3)
+        # t = np.array(extr_depth.translation)
+        t = np.array([0, -0.01, 0], dtype=np.float)
+        t = t.reshape(3,1)
         extrinsic_matrix = np.concatenate((R, t), axis=1)
         extrinsic_params.append(extrinsic_matrix)
 
@@ -187,7 +158,7 @@ finally:
     npzfile = np.load(depth_array_path)    
     print(len(npzfile.files))
     #timestamps_array = np.stack(timestamps, axis=0)
-    frames_array = np.zeros((len(npzfile.files), DEPTH_RES[1], DEPTH_RES[0], 3), dtype=np.uint8)
+    frames_array = np.zeros((len(npzfile.files), DEPTH_RES[1], DEPTH_RES[0], 3), dtype=np.int16)
     i = 0
     for key, value in npzfile.items():
         frames_array[i,:,:,:] = value

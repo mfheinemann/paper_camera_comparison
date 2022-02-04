@@ -15,7 +15,7 @@ depth_stream.start()
 depth_stream.set_video_mode(c_api.OniVideoMode(pixelFormat = c_api.OniPixelFormat.ONI_PIXEL_FORMAT_DEPTH_1_MM, resolutionX = 1280, resolutionY = 800, fps = 30))
 
 # Start the color stream
-cap = cv2.VideoCapture(4)
+cap = cv2.VideoCapture(2)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 800)
 if not cap.isOpened():

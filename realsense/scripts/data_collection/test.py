@@ -5,35 +5,66 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
 import sys
+import matplotlib
+from matplotlib import pyplot as plt
 
 def main():
-    root = tk.Tk()
-    root.withdraw()
+    # root = tk.Tk()
+    # root.withdraw()
 
-    if messagebox.askokcancel("Exit", "File already exists! Overwrite ?"):
-        print("Overwriting!")
-    else:
-        print("Canceling!")
-        sys.exit()
+    # if messagebox.askokcancel("Exit", "File already exists! Overwrite ?"):
+    #     print("Overwriting!")
+    # else:
+    #     print("Canceling!")
+    #     sys.exit()
 
 
-    file_path = '../../logs/log_rsd455_02_pc'
+    file_path = '../../logs/log_rsd455_test_pc.npz'
 
-    npzfile = np.load(file_path)    
-    print(len(npzfile.files))
+    # file_path = '../../../zed2/logs/log_zed2_2_pc.npz'
+
+    npzfile = np.load(file_path) 
+
+
+    data = npzfile["data"]
+    print(data[100, 340:380, 620:660, 2])
+
+    depth_image=data[100, :, :, 2].astype(np.int16)
+
+    cv2.imshow('image', depth_image)
+
+    # plt.figure(1)
+    # plt.imshow(depth_image)
+    # plt.show()
+
+    depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+
+    # depth_colormap = (depth_image * (255.0 / np.max(depth_image))).astype(np.uint8)
+    # depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+
+    cv2.imshow('image color',depth_colormap)
+    if cv2.waitKey(0) == ord("q"):
+        return
+
+
+    # print(np.uint16(-519))
+    # print(np.int16(np.uint16(-519)))
+
+
+    # print(len(npzfile.files))
     #timestamps_array = np.stack(timestamps, axis=0)
-    print(len(npzfile.files))
+    # print(len(npzfile.files))
     #timestamps_array = np.stack(timestamps, axis=0)
-    frames_array = np.empty((len(npzfile.files), 720, 1280, 3), dtype=np.uint8)
-    i = 0
-    for key, value in npzfile.items():
-        frames_array[i,:,:,:] = value
+    # frames_array = np.empty((len(npzfile.files), 720, 1280, 3), dtype=np.uint8)
+    # i = 0
+    # for key, value in npzfile.items():
+    #     frames_array[i,:,:,:] = value
 
-    keys, values = npzfile.values()
+    # keys, values = npzfile.values()
 
-    frames_array = np.stack(values, axis=0)
+    # frames_array = np.stack(values, axis=0)
 
-    np.savez_compressed(file_path, data=frames_array)
+    # np.savez_compressed(file_path, data=frames_array)
 
     # print(array["data"][5].shape)
     # pc_array = np.zeros((3,480, 640))

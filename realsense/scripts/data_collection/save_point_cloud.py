@@ -11,10 +11,10 @@ from tkinter import messagebox
 import sys
 
 
-DURATION = 25            # measurement duration
+DURATION = 5            # measurement duration
 LOG_PATH = '../../logs/log_rs'
-RS_MODEL = 'd435'
-NAME = '10'           # name of the files
+RS_MODEL = 'd455'
+NAME = 'test'           # name of the files
 DEPTH_RES = [1280, 720]  # desired depth resolution
 DEPTH_RATE = 30         # desired depth frame rate
 COLOR_RES = [1280, 720]  # desired rgb resolution
@@ -79,7 +79,7 @@ try:
         point_cloud = pc.calculate(depth_frame)
         point_cloud_list = np.asanyarray(point_cloud.get_vertices())
         pc = point_cloud_list.view(np.float32).reshape((point_cloud_list.size, 3))
-        point_cloud_array = np.uint16(pc.reshape((DEPTH_RES[1], DEPTH_RES[0], 3)))
+        point_cloud_array = np.int16(1000*pc.reshape((DEPTH_RES[1], DEPTH_RES[0], 3)))
         #print(point_cloud_array.shape)
 
         with zipfile.ZipFile(depth_array_path, mode='a', compression=zipfile.ZIP_DEFLATED) as zf:
@@ -128,7 +128,7 @@ finally:
     npzfile = np.load(depth_array_path)    
     print(len(npzfile.files))
     #timestamps_array = np.stack(timestamps, axis=0)
-    frames_array = np.zeros((len(npzfile.files), DEPTH_RES[1], DEPTH_RES[0], 3), dtype=np.uint8)
+    frames_array = np.zeros((len(npzfile.files), DEPTH_RES[1], DEPTH_RES[0], 3), dtype=np.int16)
     i = 0
     for key, value in npzfile.items():
         frames_array[i,:,:,:] = value
