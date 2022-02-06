@@ -1,8 +1,10 @@
+from multiprocessing.connection import wait
 from tkinter import OFF
 import numpy as np
 import cv2
 from crop_target.crop_target import CropTarget
 import pyrealsense2 as rs
+import time
 
 def main():
     print("Check that target is aligned in the frame... Press 'q' to exit")
@@ -11,8 +13,11 @@ def main():
     DEPTH_RATE = 30         # desired depth frame rate
     COLOR_RES = [1280, 720]  # desired rgb resolution
     COLOR_RATE = 30         # desired rgb frame rate
-    SHAPE   = 'rectangle'   # 'rectangle' 'circle'
-    OFFSET = -0.02  # camera specific offset from ground truth
+    SHAPE   = 'circle'   # 'rectangle' 'circle'
+    # rs435
+    OFFSET = -0.01  # camera specific offset from ground truth
+    # rs455
+    OFFSET = -0.012
 
     pipeline = rs.pipeline()
     config = rs.config()
@@ -22,14 +27,15 @@ def main():
     # config.enable_stream(rs.stream.infrared, 2, 640, 480, rs.format.y8, 30)
 
     cfg = pipeline.start(config)
+    time.sleep(2.0)
 
     # Define target
     if SHAPE == 'rectangle':
-        center  = np.array([[0.0], [0.0], [0.5 + OFFSET]])    # Center of plane
+        center  = np.array([[0.0], [0.0], [2.0 + OFFSET]])    # Center of plane
         size    = np.array([0.5, 0.5])               # (width, height) in m
         angle   = np.deg2rad(0)                     # In degrees
     elif SHAPE == 'circle':
-        center  = np.array([[0.0], [0.0], [2.0 + OFFSET]])   # Center of shpere
+        center  = np.array([[0.0], [0.0], [1.0 + OFFSET]])   # Center of shpere
         size    = 0.139/2.0                               # Radius in m
         angle   = 0.0
     else:
@@ -65,7 +71,7 @@ def main():
 
     R = np.array(extr_color.rotation)
     R = R.reshape(3,3)
-    #R = np.swapaxes(R, 1, 0) # only requiered for D435
+    R = np.swapaxes(R, 1, 0) # only requiered for D435
     t = np.array(extr_color.translation)
     t = t.reshape(3,1)     
     extrinsic_params_color = np.concatenate((R, t), axis=1)

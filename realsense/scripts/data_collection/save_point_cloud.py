@@ -11,10 +11,10 @@ from tkinter import messagebox
 import sys
 
 
-DURATION = 5            # measurement duration
+DURATION = 25            # measurement duration
 LOG_PATH = '../../logs/log_rs'
 RS_MODEL = 'd455'
-NAME = 'test'           # name of the files
+NAME = '7'           # name of the files
 DEPTH_RES = [1280, 720]  # desired depth resolution
 DEPTH_RATE = 30         # desired depth frame rate
 COLOR_RES = [1280, 720]  # desired rgb resolution
@@ -33,6 +33,7 @@ colorwriter = cv2.VideoWriter(color_path, cv2.VideoWriter_fourcc(*'XVID'), COLOR
 depthwriter = cv2.VideoWriter(depth_path, cv2.VideoWriter_fourcc(*'XVID'), DEPTH_RATE, (DEPTH_RES[0], DEPTH_RES[1]), 1)
 
 cfg = pipeline.start(config)
+time.sleep(2)
 
 try:
     if os.path.exists(depth_array_path):

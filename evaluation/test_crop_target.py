@@ -31,7 +31,7 @@ def main():
     else:
         print("Not a valid shape!")
 
-    target = CropTarget()
+    target = CropTarget(shape, center, size, angle, 10)
     disp = (image * (255.0 / np.max(image))).astype(np.uint8)
     disp = cv2.applyColorMap(disp, cv2.COLORMAP_JET)
     image_new = target.give_cropped_image(disp, extrinsic_params, intrinsic_params,
