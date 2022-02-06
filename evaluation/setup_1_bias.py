@@ -9,9 +9,15 @@ from tkinter import filedialog
 from crop_target.crop_target import CropTarget
 import edge_precision.edge_precision as ep
 
+#rs435
+# OFFSET = -0.01 # camera specific offset to ground truth 
+
+#rs455
+OFFSET = -0.012
+
 # Define target
 shape   = 'rectangle'
-center  = np.array([[0.0], [0.0], [3.985]])    # Center of plane
+center  = np.array([[0.0], [0.0], [1.0 + OFFSET]])    # Center of plane
 size    = np.array([0.48, 0.48])               # (width, height) in m
 angle   = np.radians(0.0)                      # In degrees
 edge_width = 10

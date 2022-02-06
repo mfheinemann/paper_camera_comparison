@@ -6,10 +6,15 @@ from tkinter import filedialog
 from crop_target.crop_target import CropTarget
 import open3d as o3d
 
+#rs435
+# OFFSET = -0.01 # camera specific offset to ground truth 
+
+#rs455
+OFFSET = -0.012
 
 # Define target
 shape   = 'circle'
-center  = np.array([[0.0], [0.0], [0.985]])    # Center of shperec
+center  = np.array([[0.0], [0.0], [1.0 + OFFSET]])    # Center of shperec
 size    = 0.139 / 2.0                          # Radius in m
 angle   = np.radians(0.0)
 edge_width = 0
