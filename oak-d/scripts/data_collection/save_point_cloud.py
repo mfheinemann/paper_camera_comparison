@@ -7,16 +7,19 @@ import os
 import sys
 import tkinter as tk
 from tkinter import messagebox
-from matplotlib import pyplot as plt
+import math as m
+import open3d as o3d
+
+DURATION = 1                # measurement duration
+LOG_PATH = '../../logs/log_oak-d'
+NAME = '0'           # name of the files
+DEPTH_RES = [1280, 720]  # desired depth resolution
+DEPTH_RATE = 30         # desired depth frame rate
+COLOR_RES = [1280, 720]  # desired rgb resolution
+COLOR_RATE = 30         # desired rgb frame rate
 
 def main():
-    DURATION = 1                # measurement duration
-    LOG_PATH = '../../logs/log_oak-d'
-    NAME = '0'           # name of the files
-    DEPTH_RES = [1280, 720]  # desired depth resolution
-    DEPTH_RATE = 30         # desired depth frame rate
-    COLOR_RES = [1280, 720]  # desired rgb resolution
-    COLOR_RATE = 30         # desired rgb frame rate
+
     num_frames = DURATION * DEPTH_RATE
 
     color_path = LOG_PATH + '_' + NAME + '_rgb.avi'
@@ -96,7 +99,7 @@ def main():
 
     extrinsic_params_array = np.zeros((num_frames, 3, 4), dtype=np.float64)
     intrinsic_params_array = np.zeros((num_frames, 3, 3), dtype=np.float64)
-    frames_array = np.zeros((num_frames,resolution[1], resolution[0]), dtype=np.uint16)
+    frames_array = np.zeros((num_frames,resolution[1], resolution[0], 3), dtype=np.uint16)
     with dai.Device(pipeline) as device:
         # Create a receive queue for each stream
         depth_queue = device.getOutputQueue("depth", 4, blocking=False)
@@ -121,7 +124,10 @@ def main():
 
             extrinsic_params_array[i,:,:] = np.hstack((np.identity(3), np.zeros((3,1))))
             intrinsic_params_array[i,:,:] = intrinsic_matrix
-            frames_array[i,:,:] = depth_frame.astype(np.int16)
+
+
+            point_cloud = create_point_cloud(intrinsic_matrix, depth_frame.astype(np.int16))
+            frames_array[i,:,:] = point_cloud
     
             cv2.imshow("disparity", rbg_frame)
             if cv2.waitKey(1) == ord("q"):
@@ -134,6 +140,44 @@ def main():
     np.savez_compressed(depth_array_path, data=frames_array, 
                         intrinsic_params=intrinsic_params_array, 
                         extrinsic_params=extrinsic_params_array)
+
+
+def create_point_cloud(in_params, depth_image):
+    intr = o3d.camera.PinholeCameraIntrinsic()
+    intr.set_intrinsics(DEPTH_RES[0], DEPTH_RES[1], in_params[0,0], in_params[1,1], in_params[0,2], in_params[1,2])
+
+    # PC form depth image
+    pcl = o3d.geometry.PointCloud()
+    pcl = pcl.create_from_depth_image(o3d.geometry.Image(depth_image), intr, project_valid_depth_only = False)
+
+    # flip the orientation, so it looks upright, not upside-down
+    rot_angle = np.radians(180.0)
+    pcl.transform([[m.cos(rot_angle),-m.sin(rot_angle),0,0],
+                   [m.sin(rot_angle),m.cos(rot_angle),0,0],
+                   [0,0,1,0],
+                   [0,0,0,1]])
+    pcl.transform([[m.cos(rot_angle),0,m.sin(rot_angle),0],
+                   [0,1,0,0],
+                   [-m.sin(rot_angle),0, m.cos(rot_angle),0],
+                   [0,0,0,1]])    
+
+    pcl_points = np.asanyarray(pcl.points)
+
+    point_cloud_array = np.int16(1000*pcl_points.reshape((DEPTH_RES[1], DEPTH_RES[0], 3)))
+
+    # visualize point cloud
+    #pcd_visual = pcl.create_from_depth_image(o3d.geometry.Image(depth_image), intr, project_valid_depth_only = True)
+    #pcd_visual.transform([[m.cos(rot_angle),-m.sin(rot_angle),0,0],
+    #               [m.sin(rot_angle),m.cos(rot_angle),0,0],
+    #               [0,0,1,0],
+    #               [0,0,0,1]])
+    #pcd_visual.transform([[m.cos(rot_angle),0,m.sin(rot_angle),0],
+    #               [0,1,0,0],
+    #               [-m.sin(rot_angle),0, m.cos(rot_angle),0],
+    #               [0,0,0,1]])    
+    #o3d.visualization.draw_geometries([pcd_visual])
+
+    return point_cloud_array
 
 
 if __name__ == "__main__":
