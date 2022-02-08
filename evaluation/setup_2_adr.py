@@ -20,6 +20,10 @@ def main():
     root.withdraw()
     file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")])
 
+    print("Opening file: ", file_path, "\n")
+    print("Experiment configuration - Setup 2 (ADR)\nDistance:\t{:.3f}m\nTarget size:\t({:.3f},{:.3f})m\nAngle:\t\t{:.3f}rad\nEdge width:\t{}px".format(
+         np.squeeze(center[2]), np.squeeze(size[0]), np.squeeze(size[1]), angle, edge_width))
+
     array = np.load(file_path)
     data  = array['data']
     extrinsic_params_data = array['extrinsic_params']

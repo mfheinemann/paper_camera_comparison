@@ -11,7 +11,7 @@ import edge_precision.edge_precision as ep
 
 # Define target
 shape   = 'rectangle'
-center  = np.array([[0.0], [0.0], [3.985]])    # Center of plane
+center  = np.array([[0.0], [0.0], [0.985]])    # Center of plane
 size    = np.array([0.48, 0.48])               # (width, height) in m
 angle   = np.radians(0.0)                      # In degrees
 edge_width = 10
@@ -24,7 +24,7 @@ def main():
     file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")])
 
     print("Opening file: ", file_path, "\n")
-    print("Experiment configuration\nDistance:\t{:.3f}m\nTarget size:\t({:.3f},{:.3f})m\nAngle:\t\t{:.3f}rad\nEdge width:\t{}px".format(
+    print("Experiment configuration - Setup 1 (Bias, Precision)\nDistance:\t{:.3f}m\nTarget size:\t({:.3f},{:.3f})m\nAngle:\t\t{:.3f}rad\nEdge width:\t{}px".format(
          np.squeeze(center[2]), np.squeeze(size[0]), np.squeeze(size[1]), angle, edge_width))
 
     array = np.load(file_path)
