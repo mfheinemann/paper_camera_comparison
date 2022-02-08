@@ -52,6 +52,13 @@ def main():
     bias = np.zeros((num_frames, 1))
     precision = np.zeros((num_frames, 1))
     edge_precision = np.zeros((num_frames, 4))
+
+    means = np.mean(data.astype(np.int16), axis=0)
+    mean_depth_image = means[:,:,2].astype(np.int16)/1000
+    mean_depth_image_cropped = target.crop_to_target(mean_depth_image, extrinsic_params, intrinsic_params)
+    mean_mean_depth = cv2.mean(mean_depth_image_cropped, mask)[0]
+    opt = ep.optimize_center(target, mean_depth_image, mean_mean_depth, extrinsic_params, intrinsic_params)
+
     for i in range(num_frames):
         depth_image = data[i,:,:,2].astype(np.int16)/1000
         image_cropped = target.crop_to_target(depth_image, extrinsic_params, intrinsic_params)

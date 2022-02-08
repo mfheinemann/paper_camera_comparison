@@ -137,7 +137,6 @@ def get_sphere_rec_mean_error(center, point_cloud):
     sphere = points[idxs,:].reshape([idxs.shape[0],3])
     # print(sphere)
 
-    # least-square fit center of sphere
     error = 0.0
     for i in range(idxs.shape[0]):
         x = sphere[i,0]
