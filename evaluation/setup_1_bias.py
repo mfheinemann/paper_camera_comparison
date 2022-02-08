@@ -9,9 +9,15 @@ from tkinter import filedialog
 from crop_target.crop_target import CropTarget
 import edge_precision.edge_precision as ep
 
+#rs435
+# OFFSET = -0.01 # camera specific offset to ground truth 
+
+#rs455
+OFFSET = -0.012
+
 # Define target
 shape   = 'rectangle'
-center  = np.array([[0.0], [0.0], [3.985]])    # Center of plane
+center  = np.array([[0.0], [0.0], [1.0 + OFFSET]])    # Center of plane
 size    = np.array([0.48, 0.48])               # (width, height) in m
 angle   = np.radians(0.0)                      # In degrees
 edge_width = 10
@@ -46,6 +52,13 @@ def main():
     bias = np.zeros((num_frames, 1))
     precision = np.zeros((num_frames, 1))
     edge_precision = np.zeros((num_frames, 4))
+
+    means = np.mean(data.astype(np.int16), axis=0)
+    mean_depth_image = means[:,:,2].astype(np.int16)/1000
+    mean_depth_image_cropped = target.crop_to_target(mean_depth_image, extrinsic_params, intrinsic_params)
+    mean_mean_depth = cv2.mean(mean_depth_image_cropped, mask)[0]
+    opt = ep.optimize_center(target, mean_depth_image, mean_mean_depth, extrinsic_params, intrinsic_params)
+
     for i in range(num_frames):
         depth_image = data[i,:,:,2].astype(np.int16)/1000
         image_cropped = target.crop_to_target(depth_image, extrinsic_params, intrinsic_params)

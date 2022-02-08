@@ -148,6 +148,38 @@ class CropTarget():
 
         return image_out
 
+    def crop_to_edge(self, image, ex_params, in_params, increase_edges=True):
+        self.project_shape(ex_params, in_params)
+
+        if self.shape == 'rectangle':
+            max_x = np.max(self.edge_points[:,0])
+            min_x = np.min(self.edge_points[:,0])
+            max_y = np.max(self.edge_points[:,1])
+            min_y = np.min(self.edge_points[:,1])
+        elif self.shape == 'circle':
+            max_x = self.circle_center[0] + self.circle_radius
+            min_x = self.circle_center[0] - self.circle_radius
+            max_y = self.circle_center[1] + self.circle_radius
+            min_y = self.circle_center[1] - self.circle_radius
+        else:
+            print("Invalid shape!")
+
+        # Add dimension to enable subsequent cropping of image or point cloud
+        img_dim = image.shape
+        if len(img_dim) == 2:
+            image = image.reshape(img_dim[0], img_dim[1],1)
+
+        # black out inner part
+        image[min_y+2*self.edge_width:max_y-2*self.edge_width, min_x+2*self.edge_width:max_x-2*self.edge_width, :] = 0.0
+
+        if increase_edges:
+            image_out = image[min_y-self.edge_width : max_y+self.edge_width, 
+                            min_x-self.edge_width : max_x+self.edge_width, :]
+        else:
+            image_out = image[min_y:max_y, min_x:max_x, :]
+
+        return image_out
+
     def create_edge_masks(self, image_dim, ex_params, in_params):
         mask_edge_left = np.full((image_dim[0], image_dim[1]), 0, dtype=np.uint8)
         mask_edge_down = np.full((image_dim[0], image_dim[1]), 0, dtype=np.uint8)
