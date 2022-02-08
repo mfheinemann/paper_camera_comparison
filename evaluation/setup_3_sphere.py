@@ -53,6 +53,7 @@ def main():
     means = np.mean(data.astype(np.int16), axis=0)
     means_cropped = target_large.crop_to_target(means, extrinsic_params, intrinsic_params)
 
+    print("optimizazion:")
     opt = scipy.optimize.minimize(get_sphere_rec_mean_error, start, args=means_cropped, method='nelder-mead', options={"maxiter" : 50, "fatol": 0.50})
     sphere_pos = opt.x
     print(sphere_pos)
@@ -145,7 +146,7 @@ def get_sphere_rec_mean_error(center, point_cloud):
         point = np.array([x, y, z])
         error += sphere_error(point, center[0], center[1], center[2])/idxs.shape[0]
 
-    print(error)
+    #print(error)
 
     return error
 
