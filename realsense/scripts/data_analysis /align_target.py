@@ -13,7 +13,7 @@ def main():
     DEPTH_RATE = 30         # desired depth frame rate
     COLOR_RES = [1280, 720]  # desired rgb resolution
     COLOR_RATE = 30         # desired rgb frame rate
-    SHAPE   = 'circle'   # 'rectangle' 'circle'
+    SHAPE   = 'rectangle'   # 'rectangle' 'circle'
     # rs435
     OFFSET = -0.01  # camera specific offset from ground truth
     # rs455
@@ -31,7 +31,7 @@ def main():
 
     # Define target
     if SHAPE == 'rectangle':
-        center  = np.array([[0.0], [0.0], [2.0 + OFFSET]])    # Center of plane
+        center  = np.array([[0.0], [0.0], [1.5 + OFFSET]])    # Center of plane
         size    = np.array([0.5, 0.5])               # (width, height) in m
         angle   = np.deg2rad(0)                     # In degrees
     elif SHAPE == 'circle':

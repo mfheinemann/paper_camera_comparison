@@ -9,11 +9,17 @@ from tkinter import filedialog
 from crop_target.crop_target import CropTarget
 import edge_precision.edge_precision as ep
 
+#rs435
+OFFSET = -0.01 # camera specific offset to ground truth 
+
+#rs455
+# OFFSET = -0.012
+
 # Define target
 shape   = 'rectangle'
-center  = np.array([[0.0], [0.0], [1.488]])    # Center of plane
-size    = np.array([0.48, 0.48])               # (width, height) in m
-angle   = np.radians(0.0)                      # In degrees
+center  = np.array([[0.0], [0.0], [1.0 + OFFSET]])      # Center of plane
+size    = np.array([0.48, 0.48])                        # (width, height) in m
+angle   = np.radians(0.0)                               # In degrees
 edge_width = 40
 target  = CropTarget(shape, center, size, angle, edge_width)
 
@@ -21,7 +27,7 @@ target  = CropTarget(shape, center, size, angle, edge_width)
 def main():
     root = tk.Tk()
     root.withdraw()
-    file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")])
+    file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")]) #initialdir = '/media/michel/0621-AD85', 
 
     print("Opening file: ", file_path, "\n")
     print("Experiment configuration - Setup 1 (Bias, Precision)\nDistance:\t{:.3f}m\nTarget size:\t({:.3f},{:.3f})m\nAngle:\t\t{:.3f}rad\nEdge width:\t{}px".format(
@@ -45,26 +51,50 @@ def main():
 
     bias = np.zeros((num_frames, 1))
     precision = np.zeros((num_frames, 1))
+    nan_ratio = np.zeros((num_frames, 1))
     edge_precision = np.zeros((num_frames, 4))
     for i in range(num_frames):
         depth_image = data[i,:,:,2].astype(np.int16)/1000
         image_cropped = target.crop_to_target(depth_image, extrinsic_params, intrinsic_params)
-        #print(depth_image[360,720])
-        mean_depth = cv2.mean(image_cropped, mask)[0]
+        print(depth_image[360,720])
+        #print(image_cropped.shape)
+        # idxs = np.argwhere(image_cropped)
+        #print(idxs)
+
+        # mean_depth = cv2.mean(image_cropped, mask)[0]
+        # bias[i] = np.abs(center[2] - mean_depth)
+
+        # precision[i] = np.std(image_cropped[mask_bool])
+
+        not_nan = ~np.isnan(image_cropped)
+        not_zero = image_cropped > 0
+        valid_pixels = not_nan & not_zero
+
+        mean_depth = cv2.mean(image_cropped[valid_pixels])[0]
         bias[i] = np.abs(center[2] - mean_depth)
 
-        precision[i] = np.std(image_cropped[mask_bool])
+        precision[i] = np.std(image_cropped[valid_pixels])
+
+        nan_ratio[i] = (~valid_pixels).sum() / mask_bool.sum()
+
+        # mean_depth = cv2.mean(image_cropped[idxs])
+        # bias[i] = np.abs(center[2] - mean_depth)
+
+        # precision[i] = np.std(image_cropped[idxs])
+
+        # nan_ratio[i] = (mask_bool.sum() - idxs.shape[0]) / mask_bool.sum()
 
         # Correct target to real size to get edges
         target.size = np.array([0.50, 0.50]) 
-        edge_precision[i, :] = ep.get_edge_precision(target, depth_image, mean_depth, extrinsic_params, intrinsic_params)
+        #edge_precision[i, :] = ep.get_edge_precision(target, depth_image, mean_depth, extrinsic_params, intrinsic_params)
         target.size = size        
     
     total_bias = np.mean(bias)
     total_precision = np.mean(precision)
+    total_nan_ratio = np.mean(nan_ratio)
     total_edge_precision = np.mean(edge_precision, axis=0)
 
-    print("Bias: {:0.3f}, Precision: {:0.3f}".format(total_bias, total_precision))
+    print("Bias: {:0.3f}, Precision: {:0.3f}, at NaN-Ratio: {:0.3f}".format(total_bias, total_precision, total_nan_ratio))
     print("Edge Precision: {:0.3f} (left), {:0.3f} (down), {:0.3f} (right), {:0.3f} (up)".format(
         total_edge_precision[0], total_edge_precision[1],total_edge_precision[2], total_edge_precision[3]))
 
