@@ -1,17 +1,16 @@
 import numpy as np
-import math as m
 import cv2
 import tkinter as tk
 from tkinter import filedialog
 from crop_target.crop_target import CropTarget
 import open3d as o3d
-
+from common.constants import *
 
 # Define target
 shape   = 'circle'
-center  = np.array([[0.0], [0.0], [0.985]])    # Center of shperec
-size    = 0.139 / 2.0                          # Radius in m
-angle   = np.radians(0.0)
+center  = np.array([[0.0], [0.0], [2.0 - OFFSET['zed2']]])
+size    = SPHERE_RADIUS
+angle   = 0.0
 edge_width = 0
 target  = CropTarget(shape, center, size, angle, edge_width)
 

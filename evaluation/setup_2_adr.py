@@ -1,16 +1,15 @@
 import numpy as np
-import math as m
 import cv2
 import tkinter as tk
 from tkinter import filedialog
 from crop_target.crop_target import CropTarget
-import edge_precision.edge_precision as ep
+from common.constants import *
 
 # Define target
 shape   = 'rectangle'
-center  = np.array([[0.0], [0.0], [1.985]])    # Center of plane
-size    = np.array([0.48, 0.48])               # (width, height) in m
-angle   = np.radians(-60.0)                      # In degrees
+center  = np.array([[0.0], [0.0], [2.0 - OFFSET['zed2']]])
+size    = np.asarray(TARGET_SIZE) - REDUCE_TARGET
+angle   = np.radians(20.0)
 edge_width = 0
 target  = CropTarget(shape, center, size, angle, edge_width)
 

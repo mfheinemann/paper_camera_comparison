@@ -106,7 +106,7 @@ def main():
 
 
             image_mask = target.crop_to_target(rbg_frame, extrinsic_matrix, intrinsic_matrix)
-            image_with_target = target.show_target_in_image(rbg_frame, extrinsic_matrix, intrinsic_matrix)
+            image_with_target = target.show_target_in_image(disp_frame, extrinsic_matrix, intrinsic_matrix)
 
             depth_image_with_target = target.show_target_in_image(disp_frame, extrinsic_matrix, intrinsic_matrix)
 

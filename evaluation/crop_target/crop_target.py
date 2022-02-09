@@ -60,15 +60,15 @@ class CropTarget():
     def project_shape(self, ex_params, in_params):
         if self.shape == 'rectangle':
             self.calculate_edge_points()
-            points_2D, jac = cv2.projectPoints(self.rot_points, ex_params[:,:-1], ex_params[:,3], in_params,0)
+            points_2D, _ = cv2.projectPoints(self.rot_points, ex_params[:,:-1], ex_params[:,3], in_params,0)
             self.edge_points = np.squeeze(points_2D.astype(int))
 
         elif self.shape == 'circle':
-            center_2D, jac = cv2.projectPoints(self.center, ex_params[:,:-1], ex_params[:,3], in_params,0)
+            center_2D, _ = cv2.projectPoints(self.center, ex_params[:,:-1], ex_params[:,3], in_params,0)
             self.circle_center = tuple(np.squeeze(center_2D.astype(int)))
 
             top_3D = self.center + np.array([[0], [self.size], [0]])
-            top_2D, jac = cv2.projectPoints(top_3D, ex_params[:,:-1], ex_params[:,3], in_params, 0)
+            top_2D, _ = cv2.projectPoints(top_3D, ex_params[:,:-1], ex_params[:,3], in_params, 0)
             top_2D = tuple(np.squeeze(top_2D.astype(int)))
 
             radius = m.sqrt((self.circle_center[0] - top_2D[0])*(self.circle_center[0] - top_2D[0]) +
