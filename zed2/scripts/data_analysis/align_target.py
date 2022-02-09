@@ -8,7 +8,7 @@ import math as m
 def main():
     print("Check that target is aligned in the frame... Press 'q' to exit")
 
-    depth_fps   = 15
+    depth_fps   = 30    
 
     init = sl.InitParameters(camera_resolution = sl.RESOLUTION.HD720,
                                  camera_fps = depth_fps,
@@ -27,7 +27,7 @@ def main():
     # Define target
     shape   = 'rectangle'
     if shape == 'rectangle':
-        center  = np.array([[0.0], [0.0], [1.985]])    # Center of plane
+        center  = np.array([[0.0], [0.0], [0.985]])    # Center of plane
         size    = np.array([0.5, 0.5])                 # (width, height) in m
         angle   = np.radians(0.0)                      # In degrees
     elif shape == 'circle':

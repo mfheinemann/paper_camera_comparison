@@ -10,16 +10,10 @@ from edge_precision.edge_precision import *
 from common.constants import *
 
 
-#rs435
-OFFSET = -0.01 # camera specific offset to ground truth 
-
-#rs455
-# OFFSET = -0.012
-
 # Define target
 shape   = 'rectangle'
-center  = np.array([[0.0], [0.0], [1.0 - OFFSET['rs435']]])
-size    = np.asarray(TARGET_SIZE) - REDUCE_TARGET
+center  = np.array([[0.0], [0.0], [1.0 - OFFSET['oak']]])
+size    = np.asarray(TARGET_SIZE) - 0.15
 angle   = 0.0
 edge_width = 40
 target  = CropTarget(shape, center, size, angle, edge_width)
@@ -57,15 +51,10 @@ def main():
     for i in range(num_frames):
         depth_image = data[i,:,:,2].astype(np.int16)/1000
         image_cropped = target.crop_to_target(depth_image, extrinsic_params, intrinsic_params)
-        print(depth_image[360,720])
-        #print(image_cropped.shape)
-        # idxs = np.argwhere(image_cropped)
-        #print(idxs)
 
-        # mean_depth = cv2.mean(image_cropped, mask)[0]
-        # bias[i] = np.abs(center[2] - mean_depth)
-
-        # precision[i] = np.std(image_cropped[mask_bool])
+        # plt.figure(1)
+        # plt.imshow(image_cropped)
+        # plt.show()
 
         not_nan = ~np.isnan(image_cropped)
         not_zero = image_cropped > 0
@@ -78,13 +67,6 @@ def main():
 
         nan_ratio[i] = (~valid_pixels).sum() / mask_bool.sum()
 
-        # mean_depth = cv2.mean(image_cropped[idxs])
-        # bias[i] = np.abs(center[2] - mean_depth)
-
-        # precision[i] = np.std(image_cropped[idxs])
-
-        # nan_ratio[i] = (mask_bool.sum() - idxs.shape[0]) / mask_bool.sum()
-
         # Correct target to real size to get edges
         target.size = np.asarray(TARGET_SIZE)
         edge_precision[i, :] = get_edge_precision(target, depth_image, mean_depth, extrinsic_params, intrinsic_params)
@@ -95,8 +77,8 @@ def main():
     total_nan_ratio = np.mean(nan_ratio)
     total_edge_precision = np.mean(edge_precision, axis=0)
 
-    print("Bias: {:0.3f}, Precision: {:0.3f}, at NaN-Ratio: {:0.3f}".format(total_bias, total_precision, total_nan_ratio))
-    print("Edge Precision: {:0.3f} (left), {:0.3f} (down), {:0.3f} (right), {:0.3f} (up)".format(
+    print("Bias: {:0.5f}, Precision: {:0.5f}, at NaN-Ratio: {:0.5f}".format(total_bias, total_precision, total_nan_ratio))
+    print("Edge Precision: {:0.5f} (left), {:0.5f} (down), {:0.5f} (right), {:0.5f} (up)".format(
         total_edge_precision[0], total_edge_precision[1],total_edge_precision[2], total_edge_precision[3]))
 
     cv2.destroyAllWindows()
