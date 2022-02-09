@@ -9,6 +9,10 @@ import matplotlib
 from matplotlib import pyplot as plt
 from sklearn.linear_model import LinearRegression
 
+t = [1.0, 1.0, np.nan, np.nan, np.nan]
+m = np.nanmean(t)
+print(m)
+
 # def main():
 #     # root = tk.Tk()
 #     # root.withdraw()
@@ -94,26 +98,26 @@ from sklearn.linear_model import LinearRegression
 
 # if __name__ == "__main__":
 #     main()
-reg = LinearRegression()
-pixel = np.array([[0,1],[0,2],[0,3],[0,4],[0,5]])
-# pixel = np.array([pixel[:,1],pixel[:,0]])
-pixel = np.array([pixel[:,0],pixel[:,1]])
+# reg = LinearRegression()
+# pixel = np.array([[0,1],[0,2],[0,3],[0,4],[0,5]])
+# # pixel = np.array([pixel[:,1],pixel[:,0]])
+# pixel = np.array([pixel[:,0],pixel[:,1]])
 
-# Find long side of edge
-X_var = np.var(pixel, axis=0)
-idx   = np.argmax(X_var)
-if idx == 0:
-    sort_idx = np.argsort(pixel[:,0], axis=0)
-    X = pixel[sort_idx,0].reshape(-1, 1)
-    y = pixel[sort_idx,1]
-else:
-    sort_idx = np.argsort(pixel[:,1], axis=0)
-    X = pixel[sort_idx,1].reshape(-1, 1)
-    y = pixel[sort_idx,0]
+# # Find long side of edge
+# X_var = np.var(pixel, axis=0)
+# idx   = np.argmax(X_var)
+# if idx == 0:
+#     sort_idx = np.argsort(pixel[:,0], axis=0)
+#     X = pixel[sort_idx,0].reshape(-1, 1)
+#     y = pixel[sort_idx,1]
+# else:
+#     sort_idx = np.argsort(pixel[:,1], axis=0)
+#     X = pixel[sort_idx,1].reshape(-1, 1)
+#     y = pixel[sort_idx,0]
 
-reg.fit(X, y)
-y_pred = reg.predict(X)
+# reg.fit(X, y)
+# y_pred = reg.predict(X)
 
-print(X)
-print(y)
-print(y_pred)
+# print(X)
+# print(y)
+# print(y_pred)

@@ -33,17 +33,20 @@ def calculate_edge_precision(target, edge_masks, img_cnt, extrinsic_params, intr
             sort_idx = np.argsort(pixel[:,1], axis=0)
             X = pixel[sort_idx,1].reshape(-1, 1)
             y = pixel[sort_idx,0]
+        try:
+            reg.fit(X, y)
+            y_pred = reg.predict(X)
 
-        reg.fit(X, y)
-        y_pred = reg.predict(X)
 
         #plt.scatter(X, y,color='g')
         #plt.plot(X, y_pred,color='k')
         #plt.plot(X, np.around(y_pred),color='b')
         #plt.show()
 
-        line_pixel_diff = np.abs(y - y_pred)
-        edge_precision = np.std(line_pixel_diff)
+            line_pixel_diff = np.abs(y - y_pred)
+            edge_precision = np.std(line_pixel_diff)
+
+        except: edge_precision = np.nan
         results = np.append(results,[[edge_precision]],axis=1) 
 
     return results[0,1:]
