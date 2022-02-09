@@ -11,10 +11,10 @@ import edge_precision.edge_precision as ep
 
 # Define target
 shape   = 'rectangle'
-center  = np.array([[0.0], [0.0], [0.985]])    # Center of plane
+center  = np.array([[0.0], [0.0], [1.488]])    # Center of plane
 size    = np.array([0.48, 0.48])               # (width, height) in m
 angle   = np.radians(0.0)                      # In degrees
-edge_width = 10
+edge_width = 40
 target  = CropTarget(shape, center, size, angle, edge_width)
 
 
@@ -49,7 +49,7 @@ def main():
     for i in range(num_frames):
         depth_image = data[i,:,:,2].astype(np.int16)/1000
         image_cropped = target.crop_to_target(depth_image, extrinsic_params, intrinsic_params)
-
+        #print(depth_image[360,720])
         mean_depth = cv2.mean(image_cropped, mask)[0]
         bias[i] = np.abs(center[2] - mean_depth)
 
