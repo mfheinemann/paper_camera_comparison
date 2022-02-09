@@ -9,10 +9,12 @@ import tkinter as tk
 from tkinter import messagebox
 import math as m
 import open3d as o3d
+import time
 
-DURATION = 1                # measurement duration
+
+DURATION = 25               # measurement duration
 LOG_PATH = '../../logs/log_oak-d'
-NAME = '0'           # name of the files
+NAME = '1'           # name of the files
 DEPTH_RES = [1280, 720]  # desired depth resolution
 DEPTH_RATE = 30         # desired depth frame rate
 COLOR_RES = [1280, 720]  # desired rgb resolution
@@ -105,7 +107,9 @@ def main():
         depth_queue = device.getOutputQueue("depth", 4, blocking=False)
         disp_queue = device.getOutputQueue("disparity", 4, blocking=False)
         rgb_queue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
-    
+        
+        time.sleep(2)
+
         for i in range(num_frames):
             print("Frame: " + str(i + 1))
             depth_frame = depth_queue.get().getCvFrame().astype(np.uint16)  # blocking call, will wait until a new data has arrived
@@ -126,10 +130,10 @@ def main():
             intrinsic_params_array[i,:,:] = intrinsic_matrix
 
 
-            point_cloud = create_point_cloud(intrinsic_matrix, depth_frame.astype(np.int16))
+            point_cloud = create_point_cloud(intrinsic_matrix, -depth_frame.astype(np.int16))
             frames_array[i,:,:] = point_cloud
     
-            cv2.imshow("disparity", rbg_frame)
+            cv2.imshow("disparity", disp_frame)
             if cv2.waitKey(1) == ord("q"):
                 break
 

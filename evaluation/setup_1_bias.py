@@ -18,10 +18,10 @@ OFFSET = -0.01 # camera specific offset to ground truth
 
 # Define target
 shape   = 'rectangle'
-center  = np.array([[0.0], [0.0], [1.0 - OFFSET['zed2']]])
+center  = np.array([[0.0], [0.0], [1.0 - OFFSET['rs435']]])
 size    = np.asarray(TARGET_SIZE) - REDUCE_TARGET
 angle   = 0.0
-edge_width = 10
+edge_width = 40
 target  = CropTarget(shape, center, size, angle, edge_width)
 
 

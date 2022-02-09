@@ -4,14 +4,14 @@ import cv2
 import numpy as np
 import depthai as dai
 from crop_target.crop_target import CropTarget
-
+from matplotlib import pyplot as plt
 def main():
     print("Check that target is aligned in the frame... Press 'q' to exit")
 
     # Define target
     shape   = 'rectangle'
     if shape == 'rectangle':
-        center  = np.array([[0.0], [0.0], [1.48]])    # Center of plane
+        center  = np.array([[0.0], [0.0], [1.0 - 0.054]])    # Center of plane
         size    = np.array([0.5, 0.5])               # (width, height) in m
         angle   = np.radians(0.0)                      # In degrees                           # In radiants
     elif shape == 'circle':
@@ -95,7 +95,9 @@ def main():
             disp_frame = getDisparityFrame(disp_frame)
             rbg_frame = rgb_queue.get().getCvFrame()  # blocking call, will wait until a new data has arrived
 
-
+            plt.figure(1)
+            plt.imshow(depth_frame)
+            plt.show()
             calibData = device.readCalibration()
             intrinsic_matrix = np.array(calibData.getCameraIntrinsics(dai.CameraBoardSocket.LEFT, 1280, 720))
             extrinsic_matrix = np.hstack((np.identity(3), np.zeros((3,1))))

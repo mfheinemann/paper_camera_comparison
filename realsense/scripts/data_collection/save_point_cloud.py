@@ -14,7 +14,7 @@ import sys
 DURATION = 2            # measurement duration
 LOG_PATH = '../../logs/log_rs'
 RS_MODEL = 'd435'
-NAME = 'test'           # name of the files
+NAME = '1'           # name of the files
 DEPTH_RES = [1280, 720]  # desired depth resolution
 DEPTH_RATE = 30         # desired depth frame rate
 COLOR_RES = [1280, 720]  # desired rgb resolution
