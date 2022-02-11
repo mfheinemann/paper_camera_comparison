@@ -62,9 +62,9 @@ def main():
             image_mask = target.crop_to_target(image, extrinsic_params, intrinsic_params)
             image_with_target = target.show_target_in_image(image, extrinsic_params, intrinsic_params)
 
-            image_concat = np.vstack((image_with_target, image_mask))
+            # image_concat = np.vstack((image_with_target, image_mask))
 
-            cv2.imshow("ZED | image", image_concat)
+            cv2.imshow("ZED | image", image_with_target)
             key = cv2.waitKey(1)
 
 
