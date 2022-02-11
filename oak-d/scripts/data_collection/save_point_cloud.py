@@ -14,7 +14,7 @@ import time
 
 DURATION = 25               # measurement duration
 LOG_PATH = '../../logs/log_oak-d'
-NAME = '1'           # name of the files
+NAME = '4'           # name of the files
 DEPTH_RES = [1280, 720]  # desired depth resolution
 DEPTH_RATE = 30         # desired depth frame rate
 COLOR_RES = [1280, 720]  # desired rgb resolution
@@ -85,6 +85,7 @@ def main():
     stereo.setLeftRightCheck(lrcheck)
     stereo.setExtendedDisparity(extended)
     stereo.setSubpixel(subpixel)
+    # stereo.initialConfig.setConfidenceThreshold(240)
     camRgb.setInterleaved(False)
     camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
     camRgb.setPreviewSize(1280, 720)
@@ -101,7 +102,7 @@ def main():
 
     extrinsic_params_array = np.zeros((num_frames, 3, 4), dtype=np.float64)
     intrinsic_params_array = np.zeros((num_frames, 3, 3), dtype=np.float64)
-    frames_array = np.zeros((num_frames,resolution[1], resolution[0], 3), dtype=np.uint16)
+    frames_array = np.zeros((num_frames, resolution[1], resolution[0], 3), dtype=np.uint16)
     with dai.Device(pipeline) as device:
         # Create a receive queue for each stream
         depth_queue = device.getOutputQueue("depth", 4, blocking=False)
@@ -121,18 +122,23 @@ def main():
             depthwriter.write(disp_frame)
 
             calibData = device.readCalibration()
-            intrinsic_matrix = np.array(calibData.getCameraIntrinsics(dai.CameraBoardSocket.LEFT, 1280, 720))
+            intrinsic_matrix = np.array(calibData.getCameraIntrinsics(dai.CameraBoardSocket.RIGHT, 1280, 720))
             #extrinsic_matrix = np.array(calibData.getCameraExtrinsics(dai.CameraBoardSocket.LEFT, dai.CameraBoardSocket.RGB))
             #extrinsic_matrix[:,-1] = extrinsic_matrix[:,-1] / 100   # Translation is in cm for some reason
 
+            depth_intrinsic_matrix = np.array(calibData.getCameraIntrinsics(dai.CameraBoardSocket.RIGHT, 1280, 720))
+            depth_extrinsic_matrix = np.array(calibData.getCameraExtrinsics(dai.CameraBoardSocket.RGB, dai.CameraBoardSocket.RIGHT))
+            depth_extrinsic_matrix = depth_extrinsic_matrix[:-1,:]
+            depth_extrinsic_matrix[:,-1] = depth_extrinsic_matrix[:,-1] / 100 # Translation is in cm for some reason
 
-            extrinsic_params_array[i,:,:] = np.hstack((np.identity(3), np.zeros((3,1))))
+            extrinsic_params_array[i,:,:] = depth_extrinsic_matrix
             intrinsic_params_array[i,:,:] = intrinsic_matrix
 
 
-            point_cloud = create_point_cloud(intrinsic_matrix, -depth_frame.astype(np.int16))
+            point_cloud = create_point_cloud(intrinsic_matrix, depth_frame.astype(np.int16)*-1)
             frames_array[i,:,:] = point_cloud
-    
+            # frames_array[i,:,:,2] =  depth_frame.astype(np.int16)
+   
             cv2.imshow("disparity", disp_frame)
             if cv2.waitKey(1) == ord("q"):
                 break

@@ -17,7 +17,7 @@ import sys
 DURATION = 25            # measurement duration
 LOG_PATH = '../../logs/log_'
 RS_MODEL = 'orbbec'
-NAME = '7'           # name of the files
+NAME = '4'           # name of the files
 DEPTH_RES = [1280, 800]  # desired depth resolution
 DEPTH_RATE = 30         # desired depth frame rate
 COLOR_RES = [1280, 720]  # desired rgb resolution
@@ -133,7 +133,7 @@ try:
         R = np.array([1, 0, 0, 0, 1, 0, 0, 0, 1], dtype=np.float)
         R = R.reshape(3,3)
         # t = np.array(extr_depth.translation)
-        t = np.array([0, -0.015, 0], dtype=np.float)
+        t = np.array([0, 0.04, 0], dtype=np.float)
         t = t.reshape(3,1)
         extrinsic_matrix = np.concatenate((R, t), axis=1)
         extrinsic_params.append(extrinsic_matrix)

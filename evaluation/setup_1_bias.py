@@ -12,8 +12,8 @@ from common.constants import *
 
 # Define target
 shape   = 'rectangle'
-center  = np.array([[0.0], [0.0], [4.0 - OFFSET['rs455']]])
-size    = np.asarray(TARGET_SIZE) - REDUCE_TARGET
+center  = np.array([[0.0], [0.0], [3.0 - OFFSET['orbbec']]])
+size    = np.asarray(TARGET_SIZE) - 0.07
 angle   = 0.0
 edge_width = EDGE_WIDTH
 target  = CropTarget(shape, center, size, angle, edge_width)
@@ -22,7 +22,7 @@ target  = CropTarget(shape, center, size, angle, edge_width)
 def main():
     root = tk.Tk()
     root.withdraw()
-    file_path = filedialog.askopenfilename(initialdir = '/media/michel/0621-AD85', filetypes=[("Numpy file", ".npz")]) #initialdir = '/media/michel/0621-AD85', 
+    file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")]) #initialdir = '/media/michel/0621-AD85', 
 
     print("Opening file: ", file_path, "\n")
     print("Experiment configuration - Setup 1 (Bias, Precision)\nDistance:\t{:.3f}m\nTarget size:\t({:.3f},{:.3f})m\nAngle:\t\t{:.3f}rad\nEdge width:\t{}px".format(
@@ -56,10 +56,15 @@ def main():
         # plt.imshow(image_cropped)
         # plt.show()
 
+        # disp = (depth_image * (255.0 / np.max(depth_image))).astype(np.uint8)
+        # disp = cv2.applyColorMap(disp, cv2.COLORMAP_JET)
+
+        # cv2.imshow('image', disp)
+        # cv2.waitKey(0)
+
         not_nan = ~np.isnan(image_cropped)
         not_zero = image_cropped > 0
         valid_pixels = not_nan & not_zero
-
         mean_depth = cv2.mean(image_cropped[valid_pixels])[0]
         bias[i] = np.abs(center[2] - mean_depth)
 
