@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 def main():
     DURATION = 25                # measurement duration
     LOG_PATH = '../../logs/log_zed2'
-    NAME = '0'           # name of the files
+    NAME = '2'           # name of the files
     DEPTH_RES = [1280, 720]  # desired depth resolution
     DEPTH_RATE = 30         # desired depth frame rate
     COLOR_RES = [1280, 720]  # desired rgb resolution
@@ -34,7 +34,7 @@ def main():
 
     init = sl.InitParameters(camera_resolution = sl.RESOLUTION.HD720,
                                  camera_fps = DEPTH_RATE,
-                                 depth_mode = sl.DEPTH_MODE.QUALITY,
+                                 depth_mode = sl.DEPTH_MODE.ULTRA,
                                  coordinate_units = sl.UNIT.MILLIMETER,
                                  coordinate_system = sl.COORDINATE_SYSTEM.RIGHT_HANDED_Y_UP)
 

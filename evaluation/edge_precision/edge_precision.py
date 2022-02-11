@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 from sklearn.linear_model import LinearRegression
 from matplotlib import pyplot as plt
+from common.constants import *
 
 def calculate_edge_precision(target, edge_masks, img_cnt, extrinsic_params, intrinsic_params):
     reg = LinearRegression()
@@ -16,8 +17,8 @@ def calculate_edge_precision(target, edge_masks, img_cnt, extrinsic_params, intr
         #plt.figure(1)
         #plt.imshow(img_cnt)
         #plt.show()
-        #cv2.imshow("edge", img_cnt_edges)
-        #cv2.waitKey(0)
+        # cv2.imshow("edge", img_cnt_edges)
+        # cv2.waitKey(0)
 
         # Return non-zero pixel coordinates in mask
         pixel = np.argwhere(img_cnt_edges)
@@ -55,7 +56,7 @@ def calculate_edge_precision(target, edge_masks, img_cnt, extrinsic_params, intr
 def get_edge_precision(target, image, mean_depth, extrinsic_params, intrinsic_params):
     # Crop out target and set pixels further away than target to zero
     image_cropped = target.crop_to_target(image, extrinsic_params, intrinsic_params, True)
-    target_mask   = cv2.inRange(image_cropped, 0.1,  mean_depth + 0.1)
+    target_mask   = cv2.inRange(image_cropped, 0.1,  mean_depth + DISTANCE_FRAME)
 
     contours, _ = cv2.findContours(target_mask.astype(np.uint8),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     areas = [cv2.contourArea(c) for c in contours]

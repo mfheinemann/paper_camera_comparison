@@ -15,7 +15,7 @@ def main():
     COLOR_RATE = 30         # desired rgb frame rate
     SHAPE   = 'rectangle'   # 'rectangle' 'circle'
     # rs435
-    OFFSET = -0.01  # camera specific offset from ground truth
+    #OFFSET = 0.01  # camera specific offset from ground truth
     # rs455
     # OFFSET = -0.012
 
