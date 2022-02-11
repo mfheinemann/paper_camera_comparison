@@ -11,10 +11,10 @@ from tkinter import messagebox
 import sys
 
 
-DURATION = 2            # measurement duration
+DURATION = 25         # measurement duration
 LOG_PATH = '../../logs/log_rs'
 RS_MODEL = 'd435'
-NAME = '1'           # name of the files
+NAME = '4'           # name of the files
 DEPTH_RES = [1280, 720]  # desired depth resolution
 DEPTH_RATE = 30         # desired depth frame rate
 COLOR_RES = [1280, 720]  # desired rgb resolution
@@ -46,20 +46,13 @@ try:
             print("Canceling!")
             sys.exit()
 
-    t_start = time.time()
-    t_current = 0
-
     color_frames = []
     depth_frames = []
-    timestamps = []
     intrinsic_params = []
     extrinsic_params = []
 
-    i=1
-
-    while True:
-
-        timestamps.append(time.time())
+    for i in range(DURATION * DEPTH_RATE):
+        print("Frame: ", i)
 
         frames = pipeline.wait_for_frames()
         depth_frame = frames.get_depth_frame()
@@ -81,10 +74,9 @@ try:
         point_cloud_list = np.asanyarray(point_cloud.get_vertices())
         pc = point_cloud_list.view(np.float32).reshape((point_cloud_list.size, 3))
         point_cloud_array = np.int16(1000*pc.reshape((DEPTH_RES[1], DEPTH_RES[0], 3)))
-        #print(point_cloud_array.shape)
 
         with zipfile.ZipFile(depth_array_path, mode='a', compression=zipfile.ZIP_DEFLATED) as zf:
-            array_name = str(t_current)
+            array_name = str(i)
             depth_array = {array_name:point_cloud_array}
             tmpfilename = "{}.npy".format(array_name)
             np.save(tmpfilename, point_cloud_array)
@@ -114,21 +106,12 @@ try:
         if cv2.waitKey(1) == ord("q"):
             break
 
-        if int(t_current) != int(time.time() - t_start):
-            print("Time recorded: {} ...".format(int(t_current)))
-        t_current = time.time() - t_start
-
-        if int(i/DEPTH_RATE) == int(DURATION):
-            break
-
-        i += 1
 
 
 finally:
 
     npzfile = np.load(depth_array_path)    
     print(len(npzfile.files))
-    #timestamps_array = np.stack(timestamps, axis=0)
     frames_array = np.zeros((len(npzfile.files), DEPTH_RES[1], DEPTH_RES[0], 3), dtype=np.int16)
     i = 0
     for key, value in npzfile.items():

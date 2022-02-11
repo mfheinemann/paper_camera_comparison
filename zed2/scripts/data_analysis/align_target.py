@@ -12,7 +12,7 @@ def main():
 
     init = sl.InitParameters(camera_resolution = sl.RESOLUTION.HD720,
                                  camera_fps = depth_fps,
-                                 depth_mode = sl.DEPTH_MODE.QUALITY,
+                                 depth_mode = sl.DEPTH_MODE.ULTRA,
                                  coordinate_units = sl.UNIT.MILLIMETER,
                                  coordinate_system = sl.COORDINATE_SYSTEM.RIGHT_HANDED_Y_UP)
 
@@ -27,7 +27,7 @@ def main():
     # Define target
     shape   = 'rectangle'
     if shape == 'rectangle':
-        center  = np.array([[0.0], [0.0], [0.985]])    # Center of plane
+        center  = np.array([[0.0], [0.0], [1.985]])    # Center of plane
         size    = np.array([0.5, 0.5])                 # (width, height) in m
         angle   = np.radians(0.0)                      # In degrees
     elif shape == 'circle':
@@ -58,13 +58,18 @@ def main():
             t = pose.get_translation(sl.Translation()).get()            
             extrinsic_params = np.concatenate((R, np.array([t]).T), axis=1)
         
-            image = rgb_image.get_data()
+            image = depth_image.get_data()
             image_mask = target.crop_to_target(image, extrinsic_params, intrinsic_params)
             image_with_target = target.show_target_in_image(image, extrinsic_params, intrinsic_params)
 
-            # image_concat = np.vstack((image_with_target, image_mask))
+            rgb = rgb_image.get_data()
+            rgb_with_target = target.show_target_in_image(rgb, extrinsic_params, intrinsic_params)
 
-            cv2.imshow("ZED | image", image_with_target)
+            #image_concat = np.vstack((image_with_target, image_mask))
+
+            cv2.imshow("ZED | depth", image_with_target)
+            cv2.imshow("ZED | image", rgb_with_target)
+
             key = cv2.waitKey(1)
 
 

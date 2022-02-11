@@ -15,9 +15,9 @@ def main():
     COLOR_RATE = 30         # desired rgb frame rate
     SHAPE   = 'rectangle'   # 'rectangle' 'circle'
     # rs435
-    OFFSET = -0.01  # camera specific offset from ground truth
+    #OFFSET = 0.01  # camera specific offset from ground truth
     # rs455
-    #OFFSET = -0.012
+    # OFFSET = -0.012
 
     pipeline = rs.pipeline()
     config = rs.config()
@@ -31,7 +31,7 @@ def main():
 
     # Define target
     if SHAPE == 'rectangle':
-        center  = np.array([[0.0], [0.0], [1.0 + OFFSET]])    # Center of plane
+        center  = np.array([[0.0], [0.0], [4.0 + OFFSET]])    # Center of plane
         size    = np.array([0.5, 0.5])               # (width, height) in m
         angle   = np.deg2rad(0)                     # In degrees
     elif SHAPE == 'circle':
