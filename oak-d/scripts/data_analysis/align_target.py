@@ -95,9 +95,9 @@ def main():
             disp_frame = getDisparityFrame(disp_frame)
             rbg_frame = rgb_queue.get().getCvFrame()  # blocking call, will wait until a new data has arrived
 
-            plt.figure(1)
-            plt.imshow(depth_frame)
-            plt.show()
+            # plt.figure(1)
+            # plt.imshow(depth_frame)
+            # plt.show()
             calibData = device.readCalibration()
             intrinsic_matrix = np.array(calibData.getCameraIntrinsics(dai.CameraBoardSocket.LEFT, 1280, 720))
             extrinsic_matrix = np.hstack((np.identity(3), np.zeros((3,1))))
@@ -108,13 +108,11 @@ def main():
 
 
             image_mask = target.crop_to_target(rbg_frame, extrinsic_matrix, intrinsic_matrix)
-            image_with_target = target.show_target_in_image(disp_frame, extrinsic_matrix, intrinsic_matrix)
 
             depth_image_with_target = target.show_target_in_image(disp_frame, extrinsic_matrix, intrinsic_matrix)
 
-            #image_concat = np.vstack((image_with_target, image_mask))
     
-            cv2.imshow("RGB", image_with_target)
+            cv2.imshow("RGB", image_mask)
             cv2.imshow("Depth", depth_image_with_target)
             if cv2.waitKey(1) == ord("q"):
                 break

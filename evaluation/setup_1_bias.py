@@ -12,7 +12,7 @@ from common.constants import *
 
 # Define target
 shape   = 'rectangle'
-center  = np.array([[0.0], [0.0], [4.0 - OFFSET['rs455']]])
+center  = np.array([[0.0], [0.0], [1.0 - OFFSET['zed2']]])
 size    = np.asarray(TARGET_SIZE) - REDUCE_TARGET
 angle   = 0.0
 edge_width = EDGE_WIDTH
@@ -51,10 +51,6 @@ def main():
     for i in range(num_frames):
         depth_image = data[i,:,:,2].astype(np.int16)/1000
         image_cropped = target.crop_to_target(depth_image, extrinsic_params, intrinsic_params)
-
-        # plt.figure(1)
-        # plt.imshow(image_cropped)
-        # plt.show()
 
         not_nan = ~np.isnan(image_cropped)
         not_zero = image_cropped > 0
