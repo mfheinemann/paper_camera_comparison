@@ -11,7 +11,7 @@ def main():
     # Define target
     shape   = 'rectangle'
     if shape == 'rectangle':
-        center  = np.array([[0.0], [0.0], [4.0 - 0.054]])    # Center of plane
+        center  = np.array([[0.0], [0.0], [2.0 - 0.054]])    # Center of plane
         size    = np.array([0.5, 0.5])               # (width, height) in m
         angle   = np.radians(0.0)                      # In degrees                           # In radiants
     elif shape == 'circle':
@@ -119,7 +119,7 @@ def main():
             depth_image_with_target = target.show_target_in_image(disp_frame, depth_extrinsic_matrix, depth_intrinsic_matrix)
 
             #image_concat = np.vstack((image_with_target, image_mask))
-            print(depth_frame[360, 720])
+            print(depth_frame[360, 640])
             cv2.imshow("RGB", image_with_target)
             cv2.imshow("Depth", depth_image_with_target)
             if cv2.waitKey(1) == ord("q"):

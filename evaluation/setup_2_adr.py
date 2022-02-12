@@ -7,9 +7,9 @@ from common.constants import *
 
 # Define target
 shape   = 'rectangle'
-center  = np.array([[0.0], [0.0], [2.0 - OFFSET['zed2']]])
+center  = np.array([[0.0], [0.0], [2.0 - OFFSET['oak']]])
 size    = np.asarray(TARGET_SIZE) - REDUCE_TARGET
-angle   = np.radians(20.0)
+angle   = np.radians(-20.0)
 edge_width = 0
 target  = CropTarget(shape, center, size, angle, edge_width)
 

@@ -38,7 +38,7 @@ def main():
 
     # Define target
     if SHAPE == 'rectangle':
-        center  = np.array([[0.0], [0.0], [4.0 + OFFSET]])    # Center of plane
+        center  = np.array([[0.0], [0.0], [2.0 + OFFSET]])    # Center of plane
         size    = np.array([0.5, 0.5])               # (width, height) in m
         angle   = np.deg2rad(0)                     # In degrees
     elif SHAPE == 'circle':
@@ -82,7 +82,7 @@ def main():
     R = np.array([1, 0, 0, 0, 1, 0, 0, 0, 1], dtype=np.float)
     R = R.reshape(3,3)
     # t = np.array(extr_depth.translation)
-    t = np.array([0.0, 0.04, 0], dtype=np.float)
+    t = np.array([0.0, 0.01, 0], dtype=np.float)
     t = t.reshape(3,1)
     extrinsic_params_depth = np.concatenate((R, t), axis=1)
 

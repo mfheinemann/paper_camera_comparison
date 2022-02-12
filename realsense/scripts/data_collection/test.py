@@ -9,9 +9,9 @@ import matplotlib
 from matplotlib import pyplot as plt
 from sklearn.linear_model import LinearRegression
 
-t = [1.0, 1.0, np.nan, np.nan, np.nan]
-m = np.nanmean(t)
-print(m)
+# t = [1.0, 1.0, np.nan, np.nan, np.nan]
+# m = np.nanmean(t)
+# print(m)
 
 # def main():
 #     # root = tk.Tk()
@@ -24,11 +24,17 @@ print(m)
 #     #     sys.exit()
 
 
-#     file_path = '../../logs/log_rsd455_test_pc.npz'
+# file_path = '../../logs/log_rsd455_test_pc.npz'
 
-#     # file_path = '../../../zed2/logs/log_zed2_2_pc.npz'
+file_path = '../../../orbbec/logs/log_orbbec_12_pc.npz'
 
-#     npzfile = np.load(file_path) 
+npzfile = np.load(file_path) 
+
+extr = npzfile["extrinsic_params"]
+
+extr[:,1,3] = 0.02
+
+print(extr[:,1,3])
 
 
 #     data = npzfile["data"]

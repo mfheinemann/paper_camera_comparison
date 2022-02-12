@@ -27,11 +27,11 @@ def main():
     # Define target
     shape   = 'rectangle'
     if shape == 'rectangle':
-        center  = np.array([[0.0], [0.0], [1.985]])    # Center of plane
+        center  = np.array([[0.0], [0.0], [2.0 - 0.015]])    # Center of plane
         size    = np.array([0.5, 0.5])                 # (width, height) in m
-        angle   = np.radians(0.0)                      # In degrees
+        angle   = np.radians(0)                      # In degrees
     elif shape == 'circle':
-        center  = np.array([[0.0], [0.0], [1.985]])    # Center of shperec
+        center  = np.array([[0.0], [0.0], [2.0 - 0.015]])    # Center of shperec
         size    = 0.139 / 2.0                          # Radius in m
         angle   = np.radians(0.0)
     else:
