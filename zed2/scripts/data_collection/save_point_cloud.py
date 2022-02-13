@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 def main():
     DURATION = 25                # measurement duration
     LOG_PATH = '../../logs/log_zed2'
-    NAME = '8'           # name of the files
+    NAME = '10'           # name of the files
     DEPTH_RES = [1280, 720]  # desired depth resolution
     DEPTH_RATE = 30         # desired depth frame rate
     COLOR_RES = [1280, 720]  # desired rgb resolution
