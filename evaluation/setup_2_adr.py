@@ -5,19 +5,24 @@ from tkinter import filedialog
 from crop_target.crop_target import CropTarget
 from common.constants import *
 
-# Define target
-shape   = 'rectangle'
-center  = np.array([[0.0], [0.0], [2.0 - OFFSET['oak']]])
-size    = np.asarray(TARGET_SIZE) - REDUCE_TARGET
-angle   = np.radians(-20.0)
-edge_width = 0
-target  = CropTarget(shape, center, size, angle, edge_width)
-
 
 def main():
     root = tk.Tk()
     root.withdraw()
-    file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")])
+    file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")]) #initialdir = '/media/michel/0621-AD85', 
+
+    # Define target
+    shape   = 'rectangle'
+    center  = np.array([[0.0], [0.0], [2.0 - OFFSET['oak']]])
+    size    = np.asarray(TARGET_SIZE) - REDUCE_TARGET
+    angle   = np.radians(-20.0)
+    edge_width = 0
+    target  = CropTarget(shape, center, size, angle, edge_width)
+
+    eval_setup_2(file_path, target, shape, center, size, angle, edge_width)
+
+
+def eval_setup_2(file_path, target, shape, center, size, angle, edge_width):
 
     print("Opening file: ", file_path, "\n")
     print("Experiment configuration - Setup 2 (ADR)\nDistance:\t{:.3f}m\nTarget size:\t({:.3f},{:.3f})m\nAngle:\t\t{:.3f}rad\nEdge width:\t{}px".format(
@@ -30,7 +35,7 @@ def main():
     extrinsic_params = extrinsic_params_data[0, :, :]
     intrinsic_params = intrinsic_params_data[0, :, :]
 
-    is_mask_correct = prepare_images(data, extrinsic_params, intrinsic_params)
+    is_mask_correct = prepare_images(data, target, extrinsic_params, intrinsic_params)
     if is_mask_correct == False:
         return
 
@@ -55,7 +60,7 @@ def main():
     cv2.destroyAllWindows()
 
 
-def prepare_images(data, extrinsic_params, intrinsic_params):
+def prepare_images(data, target, extrinsic_params, intrinsic_params):
     depth_image = data[0,:,:,2].astype(np.int16)
 
     disp = (depth_image * (255.0 / np.max(depth_image))).astype(np.uint8)

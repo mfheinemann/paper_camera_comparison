@@ -6,19 +6,23 @@ from crop_target.crop_target import CropTarget
 import open3d as o3d
 from common.constants import *
 
-# Define target
-shape   = 'circle'
-center  = np.array([[0.0], [0.0], [2.0 - OFFSET['zed2']]])
-size    = SPHERE_RADIUS
-angle   = 0.0
-edge_width = 0
-target  = CropTarget(shape, center, size, angle, edge_width)
-
-
 def main():
     root = tk.Tk()
     root.withdraw()
-    file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")])
+    file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")]) #initialdir = '/media/michel/0621-AD85', 
+
+    # Define target
+    shape   = 'circle'
+    center  = np.array([[0.0], [0.0], [2.0 - OFFSET['zed2']]])
+    size    = SPHERE_RADIUS
+    angle   = 0.0
+    edge_width = 0
+    target  = CropTarget(shape, center, size, angle, edge_width)
+
+    eval_setup_3_1(file_path, target, shape, center, size, angle, edge_width)
+
+
+def eval_setup_3_1(file_path, target, shape, center, size, angle, edge_width):
 
     print("Opening file: ", file_path, "\n")
     print("Experiment configuration - Setup 3 (RRE)\nDistance:\t{:.3f}m\nTarget radius:\t{:.3f}m\nAngle:\t\t{:.3f}rad\nEdge width:\t{}px".format(
@@ -31,7 +35,7 @@ def main():
     extrinsic_params = extrinsic_params_data[0, :, :]
     intrinsic_params = intrinsic_params_data[0, :, :]
 
-    is_mask_correct = prepare_images(data, extrinsic_params, intrinsic_params)
+    is_mask_correct = prepare_images(data, target, extrinsic_params, intrinsic_params)
     if is_mask_correct == False:
         return
 
@@ -47,7 +51,7 @@ def main():
         point_cloud = data[i,:,:].astype(np.int16) / 1000
         point_cloud_cropped = target.crop_to_target(point_cloud, extrinsic_params, intrinsic_params)
 
-        radius_mean[i], radius_std[i] = get_radius_estimate(point_cloud_cropped[mask_bool])
+        radius_mean[i], radius_std[i] = get_radius_estimate(point_cloud_cropped[mask_bool], center)
 
     total_radius_mean = np.mean(radius_mean) - size
     total_radius_std = np.mean(radius_std)
@@ -56,7 +60,7 @@ def main():
     cv2.destroyAllWindows()
 
 
-def prepare_images(data, extrinsic_params, intrinsic_params):
+def prepare_images(data, target, extrinsic_params, intrinsic_params):
     depth_image = data[0,:,:,2].astype(np.int16)
 
     disp = (depth_image * (255.0 / np.max(depth_image))).astype(np.uint8)
@@ -82,7 +86,7 @@ def prepare_images(data, extrinsic_params, intrinsic_params):
         return False
 
 
-def get_radius_estimate(point_cloud):
+def get_radius_estimate(point_cloud, center):
     # Remove Inf, NaN and zero values
     is_finite_depth = np.isfinite(point_cloud[:,2])
     is_not_zero = point_cloud[:,2] > 0

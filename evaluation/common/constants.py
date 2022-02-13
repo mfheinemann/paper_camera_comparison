@@ -6,9 +6,9 @@ SPHERE_RADIUS   = 0.139 / 2.0   # in meter
 EDGE_WIDTH      = 50            # in px per meter
 
 # Offset of camera sensor to mounting position
-OFFSET = {'rs435'   : 0.007, 
-          'rs455'   : 0.0075,
+OFFSET = {'rsd435'   : 0.007, 
+          'rsd455'   : 0.0075,
           'zed2'    : 0.015,
           'orbbec'  : 0.035,
-          'oak'     : 0.054,
-          'oakpro'  : 0.03,}
+          'oak-d'     : 0.054,
+          'oak-d_pro'  : 0.03,}

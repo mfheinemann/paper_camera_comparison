@@ -7,23 +7,25 @@ from crop_target.crop_target import CropTarget
 import open3d as o3d
 import pyransac3d as pyrsc
 import scipy
-
-#rs435
-# OFFSET = -0.01 # camera specific offset to ground truth 
-
-#rs455
-OFFSET = -0.012
-
-# Define target
-shape   = 'circle'
-center  = np.array([[0.0], [0.0], [1.0 + OFFSET]])    # Center of shperec
-size    = 0.139 / 2.0                          # Radius in m
-angle   = np.radians(0.0)
-edge_width = 0
-target  = CropTarget(shape, center, size, angle, edge_width)
+from common.constants import *
 
 
 def main():
+    root = tk.Tk()
+    root.withdraw()
+    file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")]) #initialdir = '/media/michel/0621-AD85', 
+
+    # Define target
+    shape   = 'circle'
+    center  = np.array([[0.0], [0.0], [2.0 - OFFSET['zed2']]])
+    size    = SPHERE_RADIUS
+    angle   = 0.0
+    edge_width = 0
+    target  = CropTarget(shape, center, size, angle, edge_width)
+
+    eval_setup_3_2(file_path, target, shape, center, size, angle, edge_width)
+
+def eval_setup_3_2(file_path, target, shape, center, size, angle, edge_width):
     root = tk.Tk()
     root.withdraw()
     file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")])
@@ -35,7 +37,7 @@ def main():
     extrinsic_params = extrinsic_params_data[0, :, :]
     intrinsic_params = intrinsic_params_data[0, :, :]
 
-    is_mask_correct = prepare_images(data, extrinsic_params, intrinsic_params)
+    is_mask_correct = prepare_images(data, target, extrinsic_params, intrinsic_params)
     if is_mask_correct == False:
         return
 
@@ -54,7 +56,7 @@ def main():
     means_cropped = target_large.crop_to_target(means, extrinsic_params, intrinsic_params)
 
     print("optimizazion:")
-    opt = scipy.optimize.minimize(get_sphere_rec_mean_error, start, args=means_cropped, method='nelder-mead', options={"maxiter" : 50, "fatol": 0.50})
+    opt = scipy.optimize.minimize(get_sphere_rec_mean_error, start, args=[target, means_cropped], method='nelder-mead', options={"maxiter" : 50, "fatol": 0.50})
     sphere_pos = opt.x
     print(sphere_pos)
 
@@ -62,7 +64,7 @@ def main():
         point_cloud = data[i,:,:,:].astype(np.int16)
         point_cloud_cropped = target_large.crop_to_target(point_cloud, extrinsic_params, intrinsic_params)
         
-        frame_errors[i] = get_sphere_rec_mean_error(sphere_pos, point_cloud_cropped)
+        frame_errors[i] = get_sphere_rec_mean_error(sphere_pos, target, point_cloud_cropped)
 
     sphere_rec_error = np.abs(np.mean(frame_errors))
 
@@ -72,7 +74,7 @@ def main():
     cv2.destroyAllWindows()
 
 
-def prepare_images(data, extrinsic_params, intrinsic_params):
+def prepare_images(data, target, extrinsic_params, intrinsic_params):
     depth_image = data[0,:,:,2].astype(np.int16)
 
     disp = (depth_image * (255.0 / np.max(depth_image))).astype(np.uint8)
@@ -122,7 +124,7 @@ def get_sphere_estimate(point_cloud):
     return center, radius, inliers
 
 
-def get_sphere_rec_mean_error(center, point_cloud):
+def get_sphere_rec_mean_error(center, target, point_cloud):
 
     # find points on sphere
     num_points = point_cloud.shape[0] * point_cloud.shape[1]
@@ -144,14 +146,14 @@ def get_sphere_rec_mean_error(center, point_cloud):
         y = sphere[i,1]
         z = sphere[i,2]
         point = np.array([x, y, z])
-        error += sphere_error(point, center[0], center[1], center[2])/idxs.shape[0]
+        error += sphere_error(point, center[0], center[1], center[2], target)/idxs.shape[0]
 
     #print(error)
 
     return error
 
 
-def sphere_error(point, x, y, z):
+def sphere_error(point, x, y, z, target):
     #print(point)
     error = abs(np.sqrt(np.square(x*1000-point[0])+np.square(y*1000-point[1])+np.square(z*1000-point[2]))-target.size*1000)
     return error
