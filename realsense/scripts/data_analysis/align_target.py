@@ -13,7 +13,7 @@ def main():
     DEPTH_RATE = 30         # desired depth frame rate
     COLOR_RES = [1280, 720]  # desired rgb resolution
     COLOR_RATE = 30         # desired rgb frame rate
-    SHAPE   = 'rectangle'   # 'rectangle' 'circle'
+    SHAPE   = 'circle'   # 'rectangle' 'circle'
     # rs435
     OFFSET = -0.007  # camera specific offset from ground truth
     # rs455
@@ -35,7 +35,7 @@ def main():
         size    = np.array([0.5, 0.5])               # (width, height) in m
         angle   = np.deg2rad(0)                     # In degrees
     elif SHAPE == 'circle':
-        center  = np.array([[0.0], [0.0], [1.0 + OFFSET]])   # Center of shpere
+        center  = np.array([[0.0], [0.0], [2.0 + OFFSET]])   # Center of shpere
         size    = 0.139/2.0                               # Radius in m
         angle   = 0.0
     else:

@@ -16,7 +16,7 @@ def main():
     DEPTH_RATE = 30         # desired depth frame rate
     COLOR_RES = [1280, 720]  # desired rgb resolution
     COLOR_RATE = 30         # desired rgb frame rate
-    SHAPE   = 'rectangle'   # 'rectangle' 'circle'
+    SHAPE   = 'circle'   # 'rectangle' 'circle'
     OFFSET = -0.035  # camera specific offset from ground truth
 
     # Initialize the depth device
@@ -42,7 +42,7 @@ def main():
         size    = np.array([0.5, 0.5])               # (width, height) in m
         angle   = np.deg2rad(0)                     # In degrees
     elif SHAPE == 'circle':
-        center  = np.array([[0.0], [0.0], [1.0 + OFFSET]])   # Center of shpere
+        center  = np.array([[0.0], [0.0], [2.0 + OFFSET]])   # Center of shpere
         size    = 0.139/2.0                               # Radius in m
         angle   = 0.0
     else:
@@ -82,7 +82,7 @@ def main():
     R = np.array([1, 0, 0, 0, 1, 0, 0, 0, 1], dtype=np.float)
     R = R.reshape(3,3)
     # t = np.array(extr_depth.translation)
-    t = np.array([0.0, 0.01, 0], dtype=np.float)
+    t = np.array([0.0, 0.02, 0], dtype=np.float)
     t = t.reshape(3,1)
     extrinsic_params_depth = np.concatenate((R, t), axis=1)
 

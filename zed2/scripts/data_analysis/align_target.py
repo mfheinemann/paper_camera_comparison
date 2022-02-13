@@ -25,7 +25,7 @@ def main():
     runtime_params = sl.RuntimeParameters(sensing_mode = sl.SENSING_MODE.STANDARD)
 
     # Define target
-    shape   = 'rectangle'
+    shape   = 'circle'
     if shape == 'rectangle':
         center  = np.array([[0.0], [0.0], [2.0 - 0.015]])    # Center of plane
         size    = np.array([0.5, 0.5])                 # (width, height) in m
