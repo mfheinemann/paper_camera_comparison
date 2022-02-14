@@ -12,4 +12,4 @@ OFFSET = {'rsd435'   : 0.007,
           'zed2'    : 0.015,
           'orbbec'  : 0.035,
           'oak-d'     : 0.054,
-          'oak-d_pro'  : 0.03,}
+          'oak-d-pro'  : 0.03,}

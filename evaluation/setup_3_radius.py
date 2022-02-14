@@ -35,7 +35,7 @@ def eval_setup_3_1(file_path, target, shape, center, size, angle, edge_width, sh
     extrinsic_params = extrinsic_params_data[0, :, :]
     intrinsic_params = intrinsic_params_data[0, :, :]
 
-    depth_image = data[0,:,:,2].astype(np.int16)
+    depth_image = data[5,:,:,2].astype(np.int16)
 
     disp = (depth_image * (255.0 / np.max(depth_image))).astype(np.uint8)
     disp = cv2.applyColorMap(disp, cv2.COLORMAP_JET)

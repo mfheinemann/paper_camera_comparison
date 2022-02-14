@@ -7,6 +7,7 @@ from crop_target.crop_target import CropTarget
 import open3d as o3d
 import pyransac3d as pyrsc
 import scipy
+from scipy import optimize
 from common.constants import *
 
 
@@ -34,7 +35,9 @@ def eval_setup_3_2(file_path, target, shape, center, size, angle, edge_width, sh
     extrinsic_params = extrinsic_params_data[0, :, :]
     intrinsic_params = intrinsic_params_data[0, :, :]
 
-    depth_image = data[0,:,:,2].astype(np.int16)
+    data = data[:,:,:,:-1]
+
+    depth_image = data[5,:,:,2].astype(np.int16)
 
     disp = (depth_image * (255.0 / np.max(depth_image))).astype(np.uint8)
     disp = cv2.applyColorMap(disp, cv2.COLORMAP_JET)
@@ -56,6 +59,8 @@ def eval_setup_3_2(file_path, target, shape, center, size, angle, edge_width, sh
     target_large = target
     target_large.size = 0.160 / 2.0
     start = np.array([target.center[0], target.center[1], target.center[2]])
+
+    print(data.shape)
 
     means = np.mean(data.astype(np.int16), axis=0)
     means_cropped = target_large.crop_to_target(means, extrinsic_params, intrinsic_params)

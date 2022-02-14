@@ -6,7 +6,7 @@ CAMERAS = {
     'zed2',  
     'orbbec',
     'oak-d',   
-    'oak-d_pro',
+    'oak-d-pro',
 }
 
 SETUPS = {}

@@ -55,15 +55,15 @@ def main():
                 elif setup == 2:
                     ind = SETUPS['2']['experiments'].index(int(number))
                     center[2] = 2.0 - OFFSET[camera]
-                    angle = -SETUPS['2']['angles'][ind]
+                    angle = np.radians(-SETUPS['2']['angles'][ind])
                     if camera == 'orbbec': angle = -angle
 
                     target  = CropTarget(shape, center, size, angle, edge_width)
 
-                    adr, first_image_with_target = setup_2_adr.eval_setup_2(os.path.join(path, name), target,
+                    adr, std, first_image_with_target = setup_2_adr.eval_setup_2(os.path.join(path, name), target,
                         shape, center, size, angle, edge_width, False)
 
-                    results = [camera, number, setup, adr]
+                    results = [camera, number, setup, adr, std]
 
                 elif setup == 3:
                     ind = SETUPS['3']['experiments'].index(int(number))

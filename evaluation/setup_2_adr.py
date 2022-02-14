@@ -35,7 +35,7 @@ def eval_setup_2(file_path, target, shape, center, size, angle, edge_width, show
     extrinsic_params = extrinsic_params_data[0, :, :]
     intrinsic_params = intrinsic_params_data[0, :, :]
 
-    depth_image = data[0,:,:,2].astype(np.int16)
+    depth_image = data[5,:,:,2].astype(np.int16)
 
     disp = (depth_image * (255.0 / np.max(depth_image))).astype(np.uint8)
     disp = cv2.applyColorMap(disp, cv2.COLORMAP_JET)
@@ -53,9 +53,16 @@ def eval_setup_2(file_path, target, shape, center, size, angle, edge_width, show
     mask_bool = np.bool_(mask)
 
     valid_points_ratio = np.zeros((num_frames, 1))
+    std = np.zeros((num_frames, 1))
     for i in range(num_frames):
         depth_image = data[i,:,:,2].astype(np.int16)
         image_cropped = target.crop_to_target(depth_image, extrinsic_params, intrinsic_params)
+
+        not_nan = ~np.isnan(image_cropped)
+        not_zero = image_cropped > 0
+        valid_pixels = not_nan & not_zero
+
+        std[i] = np.std(image_cropped[valid_pixels])
 
         not_nan = ~np.isnan(image_cropped[mask_bool])
         not_zero = image_cropped[mask_bool] > 0
@@ -63,11 +70,12 @@ def eval_setup_2(file_path, target, shape, center, size, angle, edge_width, show
         valid_points_ratio[i] = (not_nan & not_zero).sum() / mask_bool.sum()
 
     total_adr = np.mean(valid_points_ratio)
+    total_std = np.mean(std)
     print("Angle-dependend Reflectivity: {:0.3f}".format(total_adr))
 
     cv2.destroyAllWindows()
 
-    return total_adr, first_image_with_target
+    return total_adr, total_std, first_image_with_target
 
 
 def prepare_images(data, target, extrinsic_params, intrinsic_params):
