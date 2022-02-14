@@ -26,7 +26,7 @@ def main():
     eval_setup_1(file_path, target, shape, center, size, angle, edge_width)
 
 
-def eval_setup_1(file_path, target, shape, center, size, angle, edge_width):
+def eval_setup_1(file_path, target, shape, center, size, angle, edge_width, show_mask=True):
     print("Opening file: ", file_path, "\n")
     print("Experiment configuration - Setup 1 (Bias, Precision)\nDistance:\t{:.3f}m\nTarget size:\t({:.3f},{:.3f})m\nAngle:\t\t{:.3f}rad\nEdge width:\t{}px".format(
          np.squeeze(center[2]), np.squeeze(size[0]), np.squeeze(size[1]), angle, edge_width))
@@ -38,9 +38,17 @@ def eval_setup_1(file_path, target, shape, center, size, angle, edge_width):
     extrinsic_params = extrinsic_params_data[0, :, :]
     intrinsic_params = intrinsic_params_data[0, :, :]
 
-    is_mask_correct = prepare_images(data, target, extrinsic_params, intrinsic_params)
-    if is_mask_correct == False:
-        return
+    depth_image = data[0,:,:,2].astype(np.int16)
+
+    disp = (depth_image * (255.0 / np.max(depth_image))).astype(np.uint8)
+    disp = cv2.applyColorMap(disp, cv2.COLORMAP_JET)
+
+    first_image_with_target = target.show_target_in_image(disp, extrinsic_params, intrinsic_params)
+
+    if show_mask:
+        is_mask_correct = prepare_images(data, target, extrinsic_params, intrinsic_params)
+        if is_mask_correct == False:
+            return
 
     num_frames = data.shape[0]
     image_dim = data[0,:,:,2].shape
@@ -90,6 +98,8 @@ def eval_setup_1(file_path, target, shape, center, size, angle, edge_width):
         total_edge_precision[0], total_edge_precision[1],total_edge_precision[2], total_edge_precision[3]))
 
     cv2.destroyAllWindows()
+
+    return total_bias, total_precision, total_nan_ratio, total_edge_precision, first_image_with_target
 
 
 def prepare_images(data, target, extrinsic_params, intrinsic_params):

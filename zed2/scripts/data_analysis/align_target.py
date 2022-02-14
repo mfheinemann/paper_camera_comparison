@@ -25,10 +25,10 @@ def main():
     runtime_params = sl.RuntimeParameters(sensing_mode = sl.SENSING_MODE.STANDARD)
 
     # Define target
-    shape   = 'circle'
+    shape   = 'rectangle'
     if shape == 'rectangle':
-        center  = np.array([[0.0], [0.0], [2.0 - 0.015]])    # Center of plane
-        size    = np.array([0.5, 0.5])                 # (width, height) in m
+        center  = np.array([[-0.029], [0.0], [1.0 - 0.015]])    # Center of plane
+        size    = np.array([0.35, 0.2])                 # (width, height) in m
         angle   = np.radians(0)                      # In degrees
     elif shape == 'circle':
         center  = np.array([[0.0], [0.0], [2.0 - 0.015]])    # Center of shperec

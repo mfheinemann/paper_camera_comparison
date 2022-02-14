@@ -9,10 +9,10 @@ def main():
     print("Check that target is aligned in the frame... Press 'q' to exit")
 
     # Define target
-    shape   = 'circle'
+    shape   = 'rectangle'
     if shape == 'rectangle':
-        center  = np.array([[0.0], [0.0], [2.0 - 0.054]])    # Center of plane
-        size    = np.array([0.5, 0.5])               # (width, height) in m
+        center  = np.array([[-0.029], [0.0], [1.0 - 0.054]])    # Center of plane
+        size    = np.array([0.35, 0.20])                 # (width, height) in m
         angle   = np.radians(0.0)                      # In degrees                           # In radiants
     elif shape == 'circle':
         center  = np.array([[0.0], [0.0], [2.0 - 0.054]])   # Center of shpere

@@ -25,10 +25,7 @@ def main():
 
     eval_setup_3_2(file_path, target, shape, center, size, angle, edge_width)
 
-def eval_setup_3_2(file_path, target, shape, center, size, angle, edge_width):
-    root = tk.Tk()
-    root.withdraw()
-    file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")])
+def eval_setup_3_2(file_path, target, shape, center, size, angle, edge_width, show_mask=True):
 
     array = np.load(file_path)
     data  = array['data']
@@ -37,9 +34,17 @@ def eval_setup_3_2(file_path, target, shape, center, size, angle, edge_width):
     extrinsic_params = extrinsic_params_data[0, :, :]
     intrinsic_params = intrinsic_params_data[0, :, :]
 
-    is_mask_correct = prepare_images(data, target, extrinsic_params, intrinsic_params)
-    if is_mask_correct == False:
-        return
+    depth_image = data[0,:,:,2].astype(np.int16)
+
+    disp = (depth_image * (255.0 / np.max(depth_image))).astype(np.uint8)
+    disp = cv2.applyColorMap(disp, cv2.COLORMAP_JET)
+
+    first_image_with_target = target.show_target_in_image(disp, extrinsic_params, intrinsic_params)
+
+    if show_mask:
+        is_mask_correct = prepare_images(data, target, extrinsic_params, intrinsic_params)
+        if is_mask_correct == False:
+            return
 
     num_frames = data.shape[0]
     image_dim = data[0,:,:,2].shape
@@ -56,7 +61,7 @@ def eval_setup_3_2(file_path, target, shape, center, size, angle, edge_width):
     means_cropped = target_large.crop_to_target(means, extrinsic_params, intrinsic_params)
 
     print("optimizazion:")
-    opt = scipy.optimize.minimize(get_sphere_rec_mean_error, start, args=[target, means_cropped], method='nelder-mead', options={"maxiter" : 50, "fatol": 0.50})
+    opt = scipy.optimize.minimize(get_sphere_rec_mean_error, start, args=(target, means_cropped), method='nelder-mead', options={"maxiter" : 50, "fatol": 0.50})
     sphere_pos = opt.x
     print(sphere_pos)
 
@@ -72,6 +77,8 @@ def eval_setup_3_2(file_path, target, shape, center, size, angle, edge_width):
     print("Sphere Reconstruction Error: {:0.3f}".format(sphere_rec_error))
 
     cv2.destroyAllWindows()
+
+    return sphere_rec_error, first_image_with_target
 
 
 def prepare_images(data, target, extrinsic_params, intrinsic_params):

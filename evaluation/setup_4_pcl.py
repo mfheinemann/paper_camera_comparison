@@ -13,7 +13,7 @@ from crop_target.crop_target import CropTarget
 
 # Define target
 shape   = 'rectangle'
-center  = np.array([[-0.029], [0.0], [1.0 - OFFSET['rs455']]])
+center  = np.array([[-0.029], [0.0], [1.0 - OFFSET['rsd455']]])
 size    = np.array([0.35, 0.20])
 angle   = 0.0
 edge_width = EDGE_WIDTH

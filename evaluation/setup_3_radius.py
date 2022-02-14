@@ -22,7 +22,7 @@ def main():
     eval_setup_3_1(file_path, target, shape, center, size, angle, edge_width)
 
 
-def eval_setup_3_1(file_path, target, shape, center, size, angle, edge_width):
+def eval_setup_3_1(file_path, target, shape, center, size, angle, edge_width, show_mask=True):
 
     print("Opening file: ", file_path, "\n")
     print("Experiment configuration - Setup 3 (RRE)\nDistance:\t{:.3f}m\nTarget radius:\t{:.3f}m\nAngle:\t\t{:.3f}rad\nEdge width:\t{}px".format(
@@ -35,9 +35,17 @@ def eval_setup_3_1(file_path, target, shape, center, size, angle, edge_width):
     extrinsic_params = extrinsic_params_data[0, :, :]
     intrinsic_params = intrinsic_params_data[0, :, :]
 
-    is_mask_correct = prepare_images(data, target, extrinsic_params, intrinsic_params)
-    if is_mask_correct == False:
-        return
+    depth_image = data[0,:,:,2].astype(np.int16)
+
+    disp = (depth_image * (255.0 / np.max(depth_image))).astype(np.uint8)
+    disp = cv2.applyColorMap(disp, cv2.COLORMAP_JET)
+
+    first_image_with_target = target.show_target_in_image(disp, extrinsic_params, intrinsic_params)
+
+    if show_mask:
+        is_mask_correct = prepare_images(data, target, extrinsic_params, intrinsic_params)
+        if is_mask_correct == False:
+            return
 
     num_frames = data.shape[0]
     image_dim = data[0,:,:,2].shape
@@ -58,6 +66,8 @@ def eval_setup_3_1(file_path, target, shape, center, size, angle, edge_width):
     print("Radius Reconstruction Error: {:0.3f} (mean), {:0.3f} (std)".format(total_radius_mean, total_radius_std))
 
     cv2.destroyAllWindows()
+
+    return total_radius_mean, total_radius_std, first_image_with_target
 
 
 def prepare_images(data, target, extrinsic_params, intrinsic_params):

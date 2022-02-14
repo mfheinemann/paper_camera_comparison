@@ -17,7 +17,7 @@ def main():
     # rs435
     OFFSET = -0.007  # camera specific offset from ground truth
     # rs455
-    OFFSET = -0.0075
+    # OFFSET = -0.0075
 
     pipeline = rs.pipeline()
     config = rs.config()

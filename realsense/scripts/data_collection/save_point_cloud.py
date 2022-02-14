@@ -11,9 +11,9 @@ from tkinter import messagebox
 import sys
 
 
-DURATION = 1         # measurement duration
+DURATION = 2         # measurement duration
 LOG_PATH = '../../logs/log_rs'
-RS_MODEL = 'd455'
+RS_MODEL = 'd435'
 NAME = '15'           # name of the files
 DEPTH_RES = [1280, 720]  # desired depth resolution
 DEPTH_RATE = 30         # desired depth frame rate
