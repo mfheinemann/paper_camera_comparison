@@ -53,7 +53,7 @@ def main():
     rgb_image = sl.Mat()
     extrinsic_params_array = np.zeros((num_frames, 3, 4), dtype=np.float64)
     intrinsic_params_array = np.zeros((num_frames, 3, 3), dtype=np.float64)
-    frames_array = np.zeros((num_frames,DEPTH_RES[1], DEPTH_RES[0], 4), dtype=np.uint16)
+    frames_array = np.zeros((num_frames,DEPTH_RES[1], DEPTH_RES[0], 4), dtype=np.int16)
 
     for i in range(num_frames):
         print("Frame: " + str(i + 1))

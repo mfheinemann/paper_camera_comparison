@@ -1,15 +1,12 @@
-import os
-import time
-import pc_registration.reglib as reglib
-
+from re import T
 import tkinter as tk
 from tkinter import filedialog
-
 import numpy as np
+import open3d as o3d
 
 from common.constants import *
 from crop_target.crop_target import CropTarget
-
+from pc_registration.pc_utils import *
 
 # Define target
 shape   = 'rectangle'
@@ -21,11 +18,6 @@ target  = CropTarget(shape, center, size, angle, edge_width)
 
 
 def main():
-    # Only needed if you want to use manually compiled library code
-    # reglib.load_library(os.path.join(os.curdir, "cmake-build-debug"))
-
-    initial_guess = 1000
-
     root = tk.Tk()
     root.withdraw()
     file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")]) #initialdir = '/media/michel/0621-AD85', 
@@ -39,32 +31,47 @@ def main():
     extrinsic_params = extrinsic_params_data[0, :, :]
     intrinsic_params = intrinsic_params_data[0, :, :]
 
-    point_cloud = data[15]
-
+    point_cloud = data[15,:,:,:3].astype(np.int16)/1000
+    print(point_cloud.shape)
     point_cloud_cropped = target.crop_to_target(point_cloud, extrinsic_params, intrinsic_params)
 
-    point_cloud_cropped[:,:,2] -= initial_guess
-
-    point_cloud_cropped[:,:,1] = -point_cloud_cropped[:,:,1]
-
     num_points = point_cloud_cropped.shape[0] * point_cloud_cropped.shape[1]
-    target_points = point_cloud_cropped.reshape(num_points, point_cloud_cropped.shape[2]).astype(np.float64)/10
+    target_points_np = point_cloud_cropped.reshape(num_points,-1).astype(np.float64)
+
+    # Data manipulation for Oak-D (Pro)
+    # target_points_np[:,0] *= 0.01
+    # target_points_np[:,1] *= 0.01
+    # target_points_np[:,1] *= -1.0
+
+    target_points = o3d.geometry.PointCloud()
+    target_points.points = o3d.utility.Vector3dVector(target_points_np)
 
     # Load you data
-    source_points = reglib.load_data(os.path.join(os.curdir, "pc_registration/files", "euro_box.csv"))
-    #target_points = reglib.load_data(os.path.join(os.curdir, "pc_registration/files", "scene_points.csv"))
-
-    source_points = source_points
+    source_points_np = load_data("pc_registration/files/euro_box.csv")/100
+    source_points = o3d.geometry.PointCloud()
+    source_points.points = o3d.utility.Vector3dVector(source_points_np)
 
     # Run the registration algorithm
-    start = time.time()
-    trans = reglib.icp(source=source_points, target=target_points, nr_iterations=1, epsilon=0.5,
-                       inlier_threshold=10, distance_threshold=10, downsample=0, visualize=True)
-                       #resolution=12.0, step_size=0.5, voxelize=0)
-    print("Runtime:", time.time() - start)
-    print(trans)
+    threshold = 0.2
+    trans_init = np.asarray([[1.0, 0.0, 0.0, 0.0],
+                             [0.0, 1.0, 0.0, 0.0],
+                             [0.0, 0.0, 1.0, 1.0], [0.0, 0.0, 0.0, 1.0]])
+    draw_registration_result(source_points, target_points, trans_init)
+    print("Initial alignment")
+    evaluation = o3d.registration.evaluate_registration(source_points, target_points,
+                                                       threshold, trans_init)
+    print(evaluation)
+
+    print("Apply point-to-point ICP")
+    reg_p2p = o3d.registration.registration_icp(
+        source_points, target_points, threshold, trans_init,
+        o3d.registration.TransformationEstimationPointToPoint())
+    print(reg_p2p)
+    print("Transformation is:")
+    print(reg_p2p.transformation)
+    print("")
+    draw_registration_result(source_points, target_points, reg_p2p.transformation)
 
 
 if __name__ == "__main__":
-    reglib.load_library(path = './pc_registration/reglib.py')
     main()
