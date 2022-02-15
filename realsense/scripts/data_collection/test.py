@@ -12,7 +12,7 @@ from sklearn.linear_model import LinearRegression
 
 t = [1,2,3,4]
 
-print(t[:-1])
+print(t[1:4])
 
 # t = [1.0, 1.0, np.nan, np.nan, np.nan]
 # m = np.nanmean(t)
@@ -33,13 +33,18 @@ print(t[:-1])
 
 # file_path = '../../../orbbec/logs/log_orbbec_12_pc.npz'
 
-# npzfile = np.load(file_path) 
+# array = np.load(file_path)
+# data  = array['data']
+# extrinsic_params_data = array['extrinsic_params']
+# intrinsic_params_data = array['intrinsic_params']
 
-# extr = npzfile["extrinsic_params"]
+# # extr = npzfile["extrinsic_params"][:,1,3] 
 
-# extr[:,1,3] = 0.02
+# extrinsic_params_data[:,1,3]  = 0.02
 
-# print(extr[:,1,3])
+# np.savez_compressed(file_path, data=data, 
+#                     intrinsic_params=extrinsic_params_data, 
+#                     extrinsic_params=intrinsic_params_data)
 
 
 #     data = npzfile["data"]

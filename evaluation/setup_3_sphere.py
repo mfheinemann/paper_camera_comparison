@@ -35,7 +35,7 @@ def eval_setup_3_2(file_path, target, shape, center, size, angle, edge_width, sh
     extrinsic_params = extrinsic_params_data[0, :, :]
     intrinsic_params = intrinsic_params_data[0, :, :]
 
-    data = data[:,:,:,:-1]
+    data = data[:,:,:,0:3]
 
     depth_image = data[5,:,:,2].astype(np.int16)
 

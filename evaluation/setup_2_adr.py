@@ -13,9 +13,9 @@ def main():
 
     # Define target
     shape   = 'rectangle'
-    center  = np.array([[0.0], [0.0], [2.0 - OFFSET['oak']]])
+    center  = np.array([[0.0], [0.0], [2.0 - OFFSET['orbbec']]])
     size    = np.asarray(TARGET_SIZE) - REDUCE_TARGET
-    angle   = np.radians(-20.0)
+    angle   = np.radians(20.0)
     edge_width = 0
     target  = CropTarget(shape, center, size, angle, edge_width)
 
