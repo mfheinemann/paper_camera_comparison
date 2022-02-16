@@ -18,7 +18,7 @@ def main():
 
     # Define target
     shape   = 'circle'
-    center  = np.array([[0.0], [0.0], [2.0 - OFFSET['zed2']]])
+    center  = np.array([[0.0], [0.0], [2.0 - OFFSET['oak-d']]])
     size    = SPHERE_RADIUS
     angle   = 0.0
     edge_width = 0
@@ -36,6 +36,10 @@ def eval_setup_3_2(file_path, target, shape, center, size, angle, edge_width, sh
     intrinsic_params = intrinsic_params_data[0, :, :]
 
     data = data[:,:,:,0:3]
+
+    if 'oak-d' in file_path:
+        data[:,:,:,0] = data[:,:,:,0]*0.01
+        data[:,:,:,1] = data[:,:,:,1]*0.01
 
     depth_image = data[5,:,:,2].astype(np.int16)
 

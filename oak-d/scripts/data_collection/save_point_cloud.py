@@ -12,9 +12,9 @@ import open3d as o3d
 import time
 
 
-DURATION = 2               # measurement duration
+DURATION = 25               # measurement duration
 LOG_PATH = '../../logs/log_oak-d'
-NAME = '15'           # name of the files
+NAME = '2'           # name of the files
 DEPTH_RES = [1280, 720]  # desired depth resolution
 DEPTH_RATE = 30         # desired depth frame rate
 COLOR_RES = [1280, 720]  # desired rgb resolution
