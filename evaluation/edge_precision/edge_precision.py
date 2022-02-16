@@ -56,20 +56,22 @@ def calculate_edge_precision(target, edge_masks, img_cnt, extrinsic_params, intr
 def get_edge_precision(target, image, mean_depth, extrinsic_params, intrinsic_params):
     # Crop out target and set pixels further away than target to zero
     image_cropped = target.crop_to_target(image, extrinsic_params, intrinsic_params, True)
-    target_mask   = cv2.inRange(image_cropped, 0.1,  mean_depth + DISTANCE_FRAME)
+    target_mask   = cv2.inRange(image_cropped, mean_depth - DISTANCE_FRAME,  mean_depth + DISTANCE_FRAME)
 
     contours, _ = cv2.findContours(target_mask.astype(np.uint8),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     areas = [cv2.contourArea(c) for c in contours]
     sorted_areas = np.sort(areas)
-    idx = areas.index(sorted_areas[-1])
+    try:
+        idx = areas.index(sorted_areas[-1])
+    
 
-    # Draw contour
-    img_cnt = np.zeros(image_cropped.shape, np.uint8)
-    cv2.drawContours(img_cnt, contours, idx, (255),1)
+        # Draw contour
+        img_cnt = np.zeros(image_cropped.shape, np.uint8)
+        cv2.drawContours(img_cnt, contours, idx, (255),1)
 
-    # Create mask of edge
-    edge_masks = target.create_edge_masks(image.shape, extrinsic_params, intrinsic_params)
+        # Create mask of edge
+        edge_masks = target.create_edge_masks(image.shape, extrinsic_params, intrinsic_params)
 
-    edge_precision = calculate_edge_precision(target, edge_masks, img_cnt, extrinsic_params, intrinsic_params)
-   
+        edge_precision = calculate_edge_precision(target, edge_masks, img_cnt, extrinsic_params, intrinsic_params)
+    except: edge_precision = [np.nan, np.nan, np.nan, np.nan]
     return edge_precision

@@ -19,7 +19,7 @@ def main():
     folder_path = filedialog.askdirectory()
 
     result_path = os.path.join(folder_path, 'results.csv')
-    init_row = ['camera', 'number', 'setup', 'result_1', 'result_2', 'result_3', 'result_4']
+    init_row = ['camera', 'number', 'setup', 'result_1', 'result_2', 'result_3', 'result_4', 'result_5']
     append_list_as_row(result_path, init_row)
 
     images_path = os.path.join(folder_path, 'result_images')
@@ -45,12 +45,15 @@ def main():
                     ind = SETUPS['1']['experiments'].index(int(number))
                     center[2] = SETUPS['1']['distances'][ind] - OFFSET[camera]
 
+                    # if number == '4' or number == '5':
+                    #     edge_width = int(EDGE_WIDTH*2/int(number))
+
                     target  = CropTarget(shape, center, size, angle, edge_width)
 
-                    bias, precision, nan_ratio, edge_precision, first_image_with_target = setup_1_bias.eval_setup_1(
+                    bias, precision, nan_ratio, edge_precision, nan_edge_ratio, first_image_with_target = setup_1_bias.eval_setup_1(
                         os.path.join(path, name), target, shape, center, size, angle, edge_width, False)
                     
-                    results = [camera, number, setup, bias, precision, nan_ratio, edge_precision]
+                    results = [camera, number, setup, bias, precision, nan_ratio, edge_precision, nan_edge_ratio]
 
                 elif setup == 2:
                     ind = SETUPS['2']['experiments'].index(int(number))
@@ -77,10 +80,10 @@ def main():
                     radius_mean, radius_std, first_image_with_target = setup_3_radius.eval_setup_3_1(os.path.join(path, name), target,
                         shape, center, size, angle, edge_width, False)
 
-                    sphere_rec_error, _ = setup_3_sphere.eval_setup_3_2(os.path.join(path, name), target,
+                    sphere_rec_error, sphere_pos, _ = setup_3_sphere.eval_setup_3_2(os.path.join(path, name), target,
                         shape, center, size, angle, edge_width, False)
 
-                    results = [camera, number, setup, radius_mean, radius_std, sphere_rec_error]
+                    results = [camera, number, setup, radius_mean, radius_std, sphere_rec_error, sphere_pos]
 
                 else: continue
 

@@ -17,7 +17,7 @@ def main():
 
     # Define target
     shape   = 'rectangle'
-    center  = np.array([[0.0], [0.0], [1.0 - OFFSET['zed2']]])
+    center  = np.array([[0.0], [0.0], [2.0 - OFFSET['oak-d']]])
     size    = np.asarray(TARGET_SIZE) - REDUCE_TARGET
     angle   = 0.0
     edge_width = EDGE_WIDTH
@@ -32,7 +32,7 @@ def eval_setup_1(file_path, target, shape, center, size, angle, edge_width, show
          np.squeeze(center[2]), np.squeeze(size[0]), np.squeeze(size[1]), angle, edge_width))
 
     array = np.load(file_path)
-    data  = array['data']
+    data  = array['data'][4:]
     extrinsic_params_data = array['extrinsic_params']
     intrinsic_params_data = array['intrinsic_params']
     extrinsic_params = extrinsic_params_data[0, :, :]
@@ -75,7 +75,9 @@ def eval_setup_1(file_path, target, shape, center, size, angle, edge_width, show
 
         not_nan = ~np.isnan(image_cropped)
         not_zero = image_cropped > 0
-        valid_pixels = not_nan & not_zero
+        not_toolarge = np.abs(image_cropped) < (center[2] + 2)
+        not_toosmall = np.abs(image_cropped) > (center[2] - 2)
+        valid_pixels = not_nan & not_zero & not_toolarge & not_toosmall
         mean_depth = cv2.mean(image_cropped[valid_pixels])[0]
         bias[i] = np.abs(center[2] - mean_depth)
 
@@ -91,6 +93,8 @@ def eval_setup_1(file_path, target, shape, center, size, angle, edge_width, show
     total_bias = np.mean(bias)
     total_precision = np.mean(precision)
     total_nan_ratio = np.mean(nan_ratio)
+    nan_edges = np.isnan(edge_precision).sum()
+    nan_edge_ratio = nan_edges / (num_frames*4)
     total_edge_precision = np.nanmean(edge_precision, axis=0)
 
     print("Bias: {:0.5f}, Precision: {:0.5f}, at NaN-Ratio: {:0.5f}".format(total_bias, total_precision, total_nan_ratio))
@@ -99,7 +103,7 @@ def eval_setup_1(file_path, target, shape, center, size, angle, edge_width, show
 
     cv2.destroyAllWindows()
 
-    return total_bias, total_precision, total_nan_ratio, total_edge_precision, first_image_with_target
+    return total_bias, total_precision, total_nan_ratio, total_edge_precision, nan_edge_ratio, first_image_with_target
 
 
 def prepare_images(data, target, extrinsic_params, intrinsic_params):

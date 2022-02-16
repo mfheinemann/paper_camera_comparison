@@ -29,7 +29,7 @@ def eval_setup_2(file_path, target, shape, center, size, angle, edge_width, show
          np.squeeze(center[2]), np.squeeze(size[0]), np.squeeze(size[1]), angle, edge_width))
 
     array = np.load(file_path)
-    data  = array['data']
+    data  = array['data'][4:]
     extrinsic_params_data = array['extrinsic_params']
     intrinsic_params_data = array['intrinsic_params']
     extrinsic_params = extrinsic_params_data[0, :, :]
