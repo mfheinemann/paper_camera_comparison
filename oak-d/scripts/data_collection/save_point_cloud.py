@@ -113,7 +113,7 @@ def main():
 
         for i in range(num_frames):
             print("Frame: " + str(i + 1))
-            depth_frame = depth_queue.get().getCvFrame().astype(np.uint16)  # blocking call, will wait until a new data has arrived
+            depth_frame = depth_queue.get().getCvFrame().astype(np.int16)  # blocking call, will wait until a new data has arrived
             disp_frame = disp_queue.get().getCvFrame()  # blocking call, will wait until a new data has arrived
             disp_frame = getDisparityFrame(disp_frame)
             rbg_frame = rgb_queue.get().getCvFrame()  # blocking call, will wait until a new data has arrived
@@ -135,9 +135,8 @@ def main():
             intrinsic_params_array[i,:,:] = intrinsic_matrix
 
 
-            point_cloud = create_point_cloud(intrinsic_matrix, depth_frame.astype(np.int16)*-1)
+            point_cloud = create_point_cloud(intrinsic_matrix, depth_frame)
             frames_array[i,:,:] = point_cloud
-            # frames_array[i,:,:,2] =  depth_frame.astype(np.int16)
    
             cv2.imshow("disparity", disp_frame)
             if cv2.waitKey(1) == ord("q"):
@@ -160,32 +159,8 @@ def create_point_cloud(in_params, depth_image):
     pcl = o3d.geometry.PointCloud()
     pcl = pcl.create_from_depth_image(o3d.geometry.Image(depth_image), intr, project_valid_depth_only = False)
 
-    # flip the orientation, so it looks upright, not upside-down
-    rot_angle = np.radians(180.0)
-    pcl.transform([[m.cos(rot_angle),-m.sin(rot_angle),0,0],
-                   [m.sin(rot_angle),m.cos(rot_angle),0,0],
-                   [0,0,1,0],
-                   [0,0,0,1]])
-    pcl.transform([[m.cos(rot_angle),0,m.sin(rot_angle),0],
-                   [0,1,0,0],
-                   [-m.sin(rot_angle),0, m.cos(rot_angle),0],
-                   [0,0,0,1]])    
-
     pcl_points = np.asanyarray(pcl.points)
-
-    point_cloud_array = np.int16(1000*pcl_points.reshape((DEPTH_RES[1], DEPTH_RES[0], 3)))
-
-    # visualize point cloud
-    #pcd_visual = pcl.create_from_depth_image(o3d.geometry.Image(depth_image), intr, project_valid_depth_only = True)
-    #pcd_visual.transform([[m.cos(rot_angle),-m.sin(rot_angle),0,0],
-    #               [m.sin(rot_angle),m.cos(rot_angle),0,0],
-    #               [0,0,1,0],
-    #               [0,0,0,1]])
-    #pcd_visual.transform([[m.cos(rot_angle),0,m.sin(rot_angle),0],
-    #               [0,1,0,0],
-    #               [-m.sin(rot_angle),0, m.cos(rot_angle),0],
-    #               [0,0,0,1]])    
-    #o3d.visualization.draw_geometries([pcd_visual])
+    point_cloud_array = np.int16(pcl_points.reshape((DEPTH_RES[0], DEPTH_RES[1], 3)))
 
     return point_cloud_array
 

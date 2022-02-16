@@ -32,16 +32,14 @@ def main():
     intrinsic_params = intrinsic_params_data[0, :, :]
 
     point_cloud = data[15,:,:,:3].astype(np.int16)/1000
-    print(point_cloud.shape)
     point_cloud_cropped = target.crop_to_target(point_cloud, extrinsic_params, intrinsic_params)
+
 
     num_points = point_cloud_cropped.shape[0] * point_cloud_cropped.shape[1]
     target_points_np = point_cloud_cropped.reshape(num_points,-1).astype(np.float64)
 
-    # Data manipulation for Oak-D (Pro)
-    # target_points_np[:,0] *= 0.01
-    # target_points_np[:,1] *= 0.01
-    # target_points_np[:,1] *= -1.0
+    # Data manipulation for correct alignment
+    target_points_np[:,1] *= -1.0
 
     target_points = o3d.geometry.PointCloud()
     target_points.points = o3d.utility.Vector3dVector(target_points_np)
