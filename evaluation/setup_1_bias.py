@@ -17,7 +17,7 @@ def main():
 
     # Define target
     shape   = 'rectangle'
-    center  = np.array([[0.0], [0.0], [2.0 - OFFSET['oak-d']]])
+    center  = np.array([[0.0], [0.0], [5.0 - OFFSET['orbbec']]])
     size    = np.asarray(TARGET_SIZE) - REDUCE_TARGET
     angle   = 0.0
     edge_width = EDGE_WIDTH
@@ -75,8 +75,8 @@ def eval_setup_1(file_path, target, shape, center, size, angle, edge_width, show
 
         not_nan = ~np.isnan(image_cropped)
         not_zero = image_cropped > 0
-        not_toolarge = np.abs(image_cropped) < (center[2] + 2)
-        not_toosmall = np.abs(image_cropped) > (center[2] - 2)
+        # not_toolarge = np.abs(image_cropped) < (center[2] + 2)
+        # not_toosmall = np.abs(image_cropped) > (center[2] - 2)
         valid_pixels = not_nan & not_zero & not_toolarge & not_toosmall
         mean_depth = cv2.mean(image_cropped[valid_pixels])[0]
         bias[i] = np.abs(center[2] - mean_depth)
