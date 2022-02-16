@@ -49,7 +49,6 @@ def create_point_cloud(in_params, depth_image):
     pcl_points = np.asanyarray(pcl.points)
     point_cloud_array = np.int16(1000*pcl_points.reshape(image_dim[0], image_dim[1], 3))
 
-
     # For viualization
     # pcl = o3d.geometry.PointCloud()
     # pcl.points = o3d.utility.Vector3dVector(point_cloud_array.reshape(-1,3))

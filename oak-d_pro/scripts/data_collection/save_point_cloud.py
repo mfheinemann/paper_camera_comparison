@@ -154,10 +154,8 @@ def main():
 
 
 def create_point_cloud(in_params, depth_image):
-    image_dim = depth_image.shape
-
     intr = o3d.camera.PinholeCameraIntrinsic()
-    intr.set_intrinsics(image_dim[0], image_dim[1], in_params[0,0], in_params[1,1], in_params[0,2], in_params[1,2])
+    intr.set_intrinsics(DEPTH_RES[0], DEPTH_RES[1], in_params[0,0], in_params[1,1], in_params[0,2], in_params[1,2])
 
     # PC form depth image
     pcl = o3d.geometry.PointCloud()
@@ -165,7 +163,7 @@ def create_point_cloud(in_params, depth_image):
 
     # flip the orientation, so it looks upright, not upside-down
     pcl_points = np.asanyarray(pcl.points)
-    point_cloud_array = np.int16(1000*pcl_points.reshape(image_dim[0], image_dim[1], 3))
+    point_cloud_array = np.int16(1000*pcl_points.reshape(DEPTH_RES[1], DEPTH_RES[0], 3))
 
     return point_cloud_array
 
