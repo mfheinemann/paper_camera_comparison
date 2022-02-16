@@ -14,7 +14,7 @@ import time
 
 DURATION = 25               # measurement duration
 LOG_PATH = '../../logs/log_oak-d'
-NAME = '2'           # name of the files
+NAME = '3'           # name of the files
 DEPTH_RES = [1280, 720]  # desired depth resolution
 DEPTH_RATE = 30         # desired depth frame rate
 COLOR_RES = [1280, 720]  # desired rgb resolution
