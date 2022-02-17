@@ -14,6 +14,7 @@ class CropTarget():
 
         self.mask          = np.array([])
         self.edge_points   = []
+        self.rect_center     = []
         self.rot_points    = []
         self.circle_center = 0
         self.circle_radius = 0
@@ -63,6 +64,8 @@ class CropTarget():
             points_2D, _ = cv2.projectPoints(self.rot_points, ex_params[:,:-1], ex_params[:,3], in_params,0)
             self.edge_points = np.squeeze(points_2D.astype(int))
 
+            center_2D, _ = cv2.projectPoints(self.center, ex_params[:,:-1], ex_params[:,3], in_params,0)
+            self.rect_center = np.squeeze(center_2D.astype(int))
         elif self.shape == 'circle':
             center_2D, _ = cv2.projectPoints(self.center, ex_params[:,:-1], ex_params[:,3], in_params,0)
             self.circle_center = tuple(np.squeeze(center_2D.astype(int)))
@@ -147,6 +150,7 @@ class CropTarget():
             image_out = image[min_y:max_y, min_x:max_x, :]
 
         return image_out
+        
 
     def create_edge_masks(self, image_dim, ex_params, in_params):
         mask_edge_left = np.full((image_dim[0], image_dim[1]), 0, dtype=np.uint8)
@@ -156,17 +160,34 @@ class CropTarget():
 
         offset_parameter = int(0.1* m.sqrt((self.edge_points[1,0] - self.edge_points[0,0])**2 +
                                   (self.edge_points[1,1] - self.edge_points[0,1])**2))
+        #offset_parameter = np.max((offset_parameter, self.edge_width))
+
         move_leftright = np.array([offset_parameter, 0])
         move_updown = np.array([0, offset_parameter])
 
         self.project_shape(ex_params, in_params)
         if self.shape == 'rectangle':
+            # LEFT
+            points = np.vstack((self.edge_points[(0,1),:], self.rect_center))
+            cv2.fillConvexPoly(mask_edge_left, points, 255)
             cv2.line(mask_edge_left, self.edge_points[0]+move_updown, self.edge_points[1]-move_updown,
                     (255, 255, 255), self.edge_width)
+            
+            # DOWN
+            points = np.vstack((self.edge_points[(1,2),:], self.rect_center))
+            cv2.fillConvexPoly(mask_edge_down, points, 255)
             cv2.line(mask_edge_down, self.edge_points[1]+move_leftright, self.edge_points[2]-move_leftright,
                     (255, 255, 255), self.edge_width)
+
+            # RIGHT
+            points = np.vstack((self.edge_points[(2,3),:], self.rect_center))
+            cv2.fillConvexPoly(mask_edge_right, points, 255)
             cv2.line(mask_edge_right, self.edge_points[2]-move_updown, self.edge_points[3]+move_updown,
                     (255, 255, 255), self.edge_width)
+
+            # DOWN
+            points = np.vstack((self.edge_points[(3,0),:], self.rect_center))
+            cv2.fillConvexPoly(mask_edge_up, points, 255)
             cv2.line(mask_edge_up, self.edge_points[3]-move_leftright, self.edge_points[0]+move_leftright,
                     (255, 255, 255), self.edge_width)
         else:

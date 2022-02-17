@@ -3,7 +3,7 @@
 TARGET_SIZE     = (0.5, 0.5)    # in meter
 REDUCE_TARGET   = 0.05          # in meter
 SPHERE_RADIUS   = 0.139 / 2.0   # in meter
-EDGE_WIDTH      = 50            # in px per meter
+EDGE_WIDTH      = 30            # in px per meter
 DISTANCE_FRAME  = 0.08
 
 # Offset of camera sensor to mounting position
