@@ -14,7 +14,7 @@ class CropTarget():
 
         self.mask          = np.array([])
         self.edge_points   = []
-        self.rect_center     = []
+        self.rect_center   = []
         self.rot_points    = []
         self.circle_center = 0
         self.circle_radius = 0
@@ -27,11 +27,11 @@ class CropTarget():
                                  [0, z[0], 1]])
         return trans_matrix
 
-    
+
     def calculate_edge_points(self):
         '''
             Simplified general rotation around shifted axis
-        
+
             T_1(x,z)*R_y*T_2(x,z)*(Points) 
         '''
 
@@ -79,7 +79,7 @@ class CropTarget():
             self.circle_radius = int(radius)
         else:
             print("Invalid shape!")
-            
+
 
     def create_mask(self, image_dim, increase_edges = False):
         self.mask = np.full((image_dim[0], image_dim[1]), 0, dtype=np.uint8)
@@ -119,7 +119,7 @@ class CropTarget():
             cv2.circle(image, self.circle_center, self.circle_radius,(255, 0, 255), 2)
         else:
             print("Invalid shape!")
-        
+
         return image
 
     def crop_to_target(self, image, ex_params, in_params, increase_edges=False):
@@ -150,7 +150,7 @@ class CropTarget():
             image_out = image[min_y:max_y, min_x:max_x, :]
 
         return image_out
-        
+
 
     def create_edge_masks(self, image_dim, ex_params, in_params):
         mask_edge_left = np.full((image_dim[0], image_dim[1]), 0, dtype=np.uint8)
@@ -160,7 +160,6 @@ class CropTarget():
 
         offset_parameter = int(0.1* m.sqrt((self.edge_points[1,0] - self.edge_points[0,0])**2 +
                                   (self.edge_points[1,1] - self.edge_points[0,1])**2))
-        #offset_parameter = np.max((offset_parameter, self.edge_width))
 
         move_leftright = np.array([offset_parameter, 0])
         move_updown = np.array([0, offset_parameter])
@@ -172,7 +171,7 @@ class CropTarget():
             cv2.fillConvexPoly(mask_edge_left, points, 255)
             cv2.line(mask_edge_left, self.edge_points[0]+move_updown, self.edge_points[1]-move_updown,
                     (255, 255, 255), self.edge_width)
-            
+
             # DOWN
             points = np.vstack((self.edge_points[(1,2),:], self.rect_center))
             cv2.fillConvexPoly(mask_edge_down, points, 255)
@@ -194,4 +193,3 @@ class CropTarget():
             print("Invalid shape!")
 
         return (mask_edge_left, mask_edge_down, mask_edge_right, mask_edge_up)
-        

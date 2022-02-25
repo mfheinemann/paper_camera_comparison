@@ -7,7 +7,6 @@ import os
 import sys
 import tkinter as tk
 from tkinter import messagebox
-import math as m
 import open3d as o3d
 import time
 
@@ -109,7 +108,6 @@ def main():
         rgb_queue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
 
         # infrared settings
-        #ir_handler.start_ir_handler(device)
         device.irWriteReg(0x1, 0x2b)
         device.irWriteReg(0x3, 0x3c)
         device.irWriteReg(0x4, 0x3c)

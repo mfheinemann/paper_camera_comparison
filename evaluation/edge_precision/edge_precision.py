@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 from sklearn.linear_model import LinearRegression
-from matplotlib import pyplot as plt
 from common.constants import *
 
 def calculate_edge_precision(target, edge_masks, img_cnt, extrinsic_params, intrinsic_params):
@@ -12,13 +11,6 @@ def calculate_edge_precision(target, edge_masks, img_cnt, extrinsic_params, intr
 
         edge_mask_cropped = target.crop_to_target(edge_mask, extrinsic_params, intrinsic_params, True)
         img_cnt_edges = cv2.bitwise_and(img_cnt, img_cnt, mask=edge_mask_cropped)
-
-
-        #plt.figure(1)
-        #plt.imshow(img_cnt)
-        #plt.show()
-        # cv2.imshow("edge", img_cnt_edges)
-        # cv2.waitKey(0)
 
         # Return non-zero pixel coordinates in mask
         pixel = np.argwhere(img_cnt_edges)
@@ -38,16 +30,12 @@ def calculate_edge_precision(target, edge_masks, img_cnt, extrinsic_params, intr
             reg.fit(X, y)
             y_pred = reg.predict(X)
 
-
-        #plt.scatter(X, y,color='g')
-        #plt.plot(X, y_pred,color='k')
-        #plt.plot(X, np.around(y_pred),color='b')
-        #plt.show()
-
             line_pixel_diff = np.abs(y - y_pred)
             edge_precision = np.std(line_pixel_diff)
 
-        except: edge_precision = np.nan
+        except:
+            edge_precision = np.nan
+
         results = np.append(results,[[edge_precision]],axis=1) 
 
     return results[0,1:]
@@ -61,9 +49,9 @@ def get_edge_precision(target, image, mean_depth, extrinsic_params, intrinsic_pa
     contours, _ = cv2.findContours(target_mask.astype(np.uint8),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     areas = [cv2.contourArea(c) for c in contours]
     sorted_areas = np.sort(areas)
+
     try:
         idx = areas.index(sorted_areas[-1])
-    
 
         # Draw contour
         img_cnt = np.zeros(image_cropped.shape, np.uint8)
@@ -73,5 +61,7 @@ def get_edge_precision(target, image, mean_depth, extrinsic_params, intrinsic_pa
         edge_masks = target.create_edge_masks(image.shape, extrinsic_params, intrinsic_params)
 
         edge_precision = calculate_edge_precision(target, edge_masks, img_cnt, extrinsic_params, intrinsic_params)
-    except: edge_precision = [np.nan, np.nan, np.nan, np.nan]
+    except: 
+        edge_precision = [np.nan, np.nan, np.nan, np.nan]
+
     return edge_precision

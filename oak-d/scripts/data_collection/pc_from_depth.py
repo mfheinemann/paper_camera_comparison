@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 import open3d as o3d
 import numpy as np
 import tkinter as tk
@@ -10,7 +9,7 @@ from tkinter import filedialog
 def main():
     root = tk.Tk()
     root.withdraw()
-    file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")]) #initialdir = '/media/michel/0621-AD85', 
+    file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")])
     depth_array_path = file_path[:-4] + '_fix'
 
     print(depth_array_path)
@@ -48,11 +47,6 @@ def create_point_cloud(in_params, depth_image):
     # flip the orientation, so it looks upright, not upside-down
     pcl_points = np.asanyarray(pcl.points)
     point_cloud_array = np.int16(1000*pcl_points.reshape(image_dim[0], image_dim[1], 3))
-
-    # For viualization
-    # pcl = o3d.geometry.PointCloud()
-    # pcl.points = o3d.utility.Vector3dVector(point_cloud_array.reshape(-1,3))
-    # o3d.visualization.draw_geometries([pcl])
 
 
     return point_cloud_array
