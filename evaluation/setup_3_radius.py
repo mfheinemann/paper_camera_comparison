@@ -5,6 +5,7 @@ from tkinter import filedialog
 from crop_target.crop_target import CropTarget
 import open3d as o3d
 from common.constants import *
+import matplotlib.pyplot as plt
 
 def main():
     root = tk.Tk()
@@ -13,7 +14,7 @@ def main():
 
     # Define target
     shape   = 'circle'
-    center  = np.array([[0.0], [0.0], [2.0 - OFFSET['zed2']]])
+    center  = np.array([[0.0], [0.0], [1.0 - OFFSET['zed2']]])
     size    = SPHERE_RADIUS
     angle   = 0.0
     edge_width = 0
@@ -57,12 +58,17 @@ def eval_setup_3_1(file_path, target, shape, center, size, angle, edge_width, sh
     for i in range(num_frames):
         # Load point cloud and transform millimeter value to meter
         point_cloud = data[i,:,:].astype(np.int16) / 1000
-        point_cloud_cropped = target.crop_to_target(point_cloud, extrinsic_params, intrinsic_params)
+        #print(point_cloud[:,:,0])
 
+        
+        point_cloud_cropped = target.crop_to_target(point_cloud, extrinsic_params, intrinsic_params)
+        # plt.figure(1)
+        # plt.imshow(point_cloud_cropped[:,:,2])
+        # plt.show()
         radius_mean[i], radius_std[i] = get_radius_estimate(point_cloud_cropped[mask_bool], center)
 
-    total_radius_mean = np.mean(radius_mean) - size
-    total_radius_std = np.mean(radius_std)
+    total_radius_mean = np.mean(abs(radius_mean)) - size
+    total_radius_std = np.mean(abs(radius_std))
     print("Radius Reconstruction Error: {:0.3f} (mean), {:0.3f} (std)".format(total_radius_mean, total_radius_std))
 
     cv2.destroyAllWindows()
@@ -100,7 +106,7 @@ def get_radius_estimate(point_cloud, center):
     # Remove Inf, NaN and zero values
     is_finite_depth = np.isfinite(point_cloud[:,2])
     is_not_zero = point_cloud[:,2] > 0
-    is_not_background = point_cloud[:,2] < (center[2] + 0.3)
+    is_not_background = point_cloud[:,2] < (center[2] + 1.0)
     selection_matrix = is_finite_depth & is_not_zero & is_not_background
 
     valid_points = point_cloud[selection_matrix, 0:3]
@@ -108,13 +114,14 @@ def get_radius_estimate(point_cloud, center):
     radius = np.sqrt((valid_points[:,0] - center[0])**2 + 
                      (valid_points[:,1] - center[1])**2 + 
                      (valid_points[:,2] - center[2])**2)
-    
-    #points_vis = np.append(points, center.T, axis=0)
-    #pcl_vis = o3d.geometry.PointCloud()
-    #pcl_vis.points = o3d.utility.Vector3dVector(points_vis)
-    #o3d.visualization.draw_geometries([pcl_vis])
 
-    return np.mean(radius), np.std(radius)
+    
+    # points_vis = np.append(valid_points, center.T, axis=0)
+    # pcl_vis = o3d.geometry.PointCloud()
+    # pcl_vis.points = o3d.utility.Vector3dVector(points_vis)
+    # o3d.visualization.draw_geometries([pcl_vis])
+
+    return np.mean(abs(radius)), np.std(radius)
 
 
 if __name__ == "__main__":

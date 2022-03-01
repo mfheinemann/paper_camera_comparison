@@ -4,7 +4,9 @@ import tkinter as tk
 from tkinter import filedialog
 from crop_target.crop_target import CropTarget
 from common.constants import *
-
+import math
+import copy
+import matplotlib.pyplot as plt
 
 def main():
     root = tk.Tk()
@@ -13,7 +15,7 @@ def main():
 
     # Define target
     shape   = 'rectangle'
-    center  = np.array([[0.0], [0.0], [2.0 - OFFSET['orbbec']]])
+    center  = np.array([[0.0], [-0.07], [2.0 - OFFSET['orbbec']]]) #y = -0.07 orbbec 12
     size    = np.asarray(TARGET_SIZE) - REDUCE_TARGET
     angle   = np.radians(20.0)
     edge_width = 0
@@ -29,7 +31,7 @@ def eval_setup_2(file_path, target, shape, center, size, angle, edge_width, show
          np.squeeze(center[2]), np.squeeze(size[0]), np.squeeze(size[1]), angle, edge_width))
 
     array = np.load(file_path)
-    data  = array['data'][4:]
+    data  = array['data'][4:].astype(np.int16)
     extrinsic_params_data = array['extrinsic_params']
     intrinsic_params_data = array['intrinsic_params']
     extrinsic_params = extrinsic_params_data[0, :, :]
@@ -47,35 +49,71 @@ def eval_setup_2(file_path, target, shape, center, size, angle, edge_width, show
         if is_mask_correct == False:
             return
 
+    target_reduced = copy.deepcopy(target)
+    target_reduced.angle = np.sign(target.angle) * np.radians(60.0)
+
     num_frames = data.shape[0]
     image_dim = data[0,:,:,2].shape
-    mask = target.give_mask(image_dim, extrinsic_params, intrinsic_params)
+    #mask = target.give_mask(image_dim, extrinsic_params, intrinsic_params)
+    mask = target_reduced.give_adp_mask(image_dim, extrinsic_params, intrinsic_params)
     mask_bool = np.bool_(mask)
 
     valid_points_ratio = np.zeros((num_frames, 1))
     std = np.zeros((num_frames, 1))
     for i in range(num_frames):
         depth_image = data[i,:,:,2].astype(np.int16)
-        image_cropped = target.crop_to_target(depth_image, extrinsic_params, intrinsic_params)
+        image_cropped = target_reduced.crop_to_target_adp(depth_image, extrinsic_params, intrinsic_params)
 
+        # cv2.imshow('reduced image', image_cropped)
+        # cv2.waitKey(0)
+
+        # plt.figure(1)
+        # plt.imshow(image_cropped)
+        # plt.show()
+
+        mean = np.nanmean(image_cropped)
+        #print(mean)
+        
         not_nan = ~np.isnan(image_cropped)
         not_zero = image_cropped > 0
-        valid_pixels = not_nan & not_zero
+        not_toolarge = np.abs(image_cropped) < (mean + 1000)
+        not_toosmall = np.abs(image_cropped) > (mean - 1000)
+        valid_pixels = not_nan & not_zero & not_toolarge & not_toosmall
 
-        std[i] = np.std(image_cropped[valid_pixels])
+        # std[i] = np.std(image_cropped[valid_pixels])
 
-        not_nan = ~np.isnan(image_cropped[mask_bool])
-        not_zero = image_cropped[mask_bool] > 0
 
-        valid_points_ratio[i] = (not_nan & not_zero).sum() / mask_bool.sum()
 
-    total_adr = np.mean(valid_points_ratio)
+        # not_nan = ~np.isnan(image_cropped[mask_bool])
+        # not_zero = image_cropped[mask_bool] > 0
+        # valid_pixels = not_nan & not_zero
+
+        std_img = np.std(image_cropped[valid_pixels])
+
+        width = target_reduced.size[1]*1000 * math.cos(np.deg2rad(60)) / math.cos(angle)
+        # print(width)
+        # print(image_cropped.shape)
+        t = np.linspace(-width/2 * math.sin(angle), width/2 * math.sin(angle), num=image_cropped.shape[1])
+        img_ideal = np.tile(t,(image_cropped.shape[0],1)).reshape(image_cropped.shape)
+
+        #std_ideal = np.std(t)
+
+        # print(std_ideal)
+        # print(std_img)
+        # std_rows = np.zeros((image_cropped.shape[1],1))
+        # for j in range(image_cropped.shape[1]):
+        #     std_rows[j] = np.std(image_cropped[:,j]-t)
+
+        std[i] = np.std(abs(image_cropped-img_ideal))
+        #valid_points_ratio[i] = (not_nan & not_zero).sum() / mask_bool.sum()
+
+    #total_adr = np.mean(valid_points_ratio)
     total_std = np.mean(std)
-    print("Angle-dependend Reflectivity: {:0.3f}".format(total_adr))
+    print("Angle-dependend precision: {:0.3f}".format(total_std))
 
     cv2.destroyAllWindows()
 
-    return total_adr, total_std, first_image_with_target
+    return total_std, first_image_with_target
 
 
 def prepare_images(data, target, extrinsic_params, intrinsic_params):

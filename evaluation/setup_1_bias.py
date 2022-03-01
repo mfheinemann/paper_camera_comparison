@@ -17,7 +17,7 @@ def main():
 
     # Define target
     shape   = 'rectangle'
-    center  = np.array([[0.0], [0.0], [3.0 - OFFSET['oak-d']]])
+    center  = np.array([[0.0], [0.0], [2.0 - OFFSET['oak-d']]])
     size    = np.asarray(TARGET_SIZE) - REDUCE_TARGET
     angle   = 0.0
     edge_width = EDGE_WIDTH
@@ -32,7 +32,7 @@ def eval_setup_1(file_path, target, shape, center, size, angle, edge_width, show
          np.squeeze(center[2]), np.squeeze(size[0]), np.squeeze(size[1]), angle, edge_width))
 
     array = np.load(file_path)
-    data  = array['data'][4:]
+    data  = array['data'][4:,:,:,0:3]
     extrinsic_params_data = array['extrinsic_params']
     intrinsic_params_data = array['intrinsic_params']
     extrinsic_params = extrinsic_params_data[0, :, :]
@@ -61,6 +61,7 @@ def eval_setup_1(file_path, target, shape, center, size, angle, edge_width, show
     edge_precision = np.zeros((num_frames, 4))
     for i in range(num_frames):
         depth_image = data[i,:,:,2].astype(np.int16)/1000
+        point_cloud = data[i,:,:,:].astype(np.int16)/1000
         image_cropped = target.crop_to_target(depth_image, extrinsic_params, intrinsic_params)
 
         # plt.figure(1)
@@ -73,11 +74,13 @@ def eval_setup_1(file_path, target, shape, center, size, angle, edge_width, show
         # cv2.imshow('image', disp)
         # cv2.waitKey(0)
 
+        mean = np.nanmean(image_cropped)
+
         not_nan = ~np.isnan(image_cropped)
         not_zero = image_cropped > 0
-        # not_toolarge = np.abs(image_cropped) < (center[2] + 2)
-        # not_toosmall = np.abs(image_cropped) > (center[2] - 2)
-        valid_pixels = not_nan & not_zero
+        not_toolarge = np.abs(image_cropped) < (mean + 1000)
+        not_toosmall = np.abs(image_cropped) > (mean - 1000)
+        valid_pixels = not_nan & not_zero & not_toolarge & not_toosmall
         mean_depth = cv2.mean(image_cropped[valid_pixels])[0]
         bias[i] = np.abs(center[2] - mean_depth)
 
@@ -87,7 +90,7 @@ def eval_setup_1(file_path, target, shape, center, size, angle, edge_width, show
 
         # Correct target to real size to get edges
         target.size = np.asarray(TARGET_SIZE)
-        edge_precision[i, :] = get_edge_precision(target, depth_image, mean_depth, extrinsic_params, intrinsic_params)
+        edge_precision[i, :] = get_edge_precision(target, point_cloud, mean_depth, extrinsic_params, intrinsic_params)
         target.size = size        
     
     total_bias = np.mean(bias)

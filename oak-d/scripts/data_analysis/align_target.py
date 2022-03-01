@@ -92,7 +92,7 @@ def main():
         rgb_queue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
     
         while True:
-            depth_frame = depth_queue.get().getCvFrame().astype(np.uint16)  # blocking call, will wait until a new data has arrived
+            depth_frame = depth_queue.get().getCvFrame()  # blocking call, will wait until a new data has arrived
             disp_frame = disp_queue.get().getCvFrame()  # blocking call, will wait until a new data has arrived
             disp_frame = getDisparityFrame(disp_frame)
             rbg_frame = rgb_queue.get().getCvFrame()  # blocking call, will wait until a new data has arrived
@@ -119,7 +119,10 @@ def main():
             depth_image_with_target = target.show_target_in_image(disp_frame, depth_extrinsic_matrix, depth_intrinsic_matrix)
 
             #image_concat = np.vstack((image_with_target, image_mask))
-            print(depth_frame[360, 640])
+            # print(depth_frame[330:390, 600:680])
+            # plt.figure(1)
+            # plt.imshow(depth_image_with_target)
+            # plt.show()
             cv2.imshow("RGB", image_with_target)
             cv2.imshow("Depth", depth_image_with_target)
             if cv2.waitKey(1) == ord("q"):

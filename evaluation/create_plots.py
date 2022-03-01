@@ -26,8 +26,9 @@ def main():
     nan_ratio = np.zeros([6,7])
     ep = np.zeros([6,7])    # 1-5 meters + dark + shiny
     nan_edge_ratio = np.zeros([6,7])
-    adr = np.zeros([6,3])  
-    std_adr = np.zeros([6,3])                      # 20-60 deg
+    #quad_err = np.zeros([6,7])
+    #adr = np.zeros([6,3])  
+    adp = np.zeros([6,3])                      # 20-60 deg
     rad_mean = np.zeros([6,4])
     rad_std = np.zeros([6,4])
     sphere_err = np.zeros([6,4])     # 1-3 meters + dark
@@ -48,10 +49,11 @@ def main():
                 r6 = row[6].replace('  ', ' ').replace('  ', ' ').replace('  ', ' ').replace('  ', ' ').replace('  ', ' ').replace('  ', ' ').replace('  ', ' ').replace('[ ', '').replace(' ]', '').replace('[', '').replace(']', '')
                 ep[int(cams[row[0]]),int(row[1])-1] = np.mean([float(i) for i in r6.split(' ')])
                 nan_edge_ratio[int(cams[row[0]]),int(row[1])-1] = float(row[7])
+                #quad_err[int(cams[row[0]]),int(row[1])-1] = float(row[8])
             # setup 2
             elif row[2] == '2':
-                adr[int(cams[row[0]]),int(row[1])-12] = float(row[3])
-                std_adr[int(cams[row[0]]),int(row[1])-12] = float(row[4])
+                adp[int(cams[row[0]]),int(row[1])-12] = float(row[3])/1000
+                #std_adr[int(cams[row[0]]),int(row[1])-12] = float(row[4])
             elif row[2] == '3':
                 rad_mean[int(cams[row[0]]),int(row[1])-7] = float(row[3])
                 rad_std[int(cams[row[0]]),int(row[1])-7] = float(row[4])
@@ -59,117 +61,117 @@ def main():
             else: continue
 
     plt.figure()
-    plt.plot([1,2,3,4,5], bias[0,0:5], [1,2,3,4,5], bias[1,0:5], [1,2,3,4,5], bias[2,0:5], [1,2,3,4,5], bias[3,0:5], [1,2,3,4,5], bias[4,0:5], [1,2,3,4,5], bias[5,0:5])
+    plt.plot([1,2,3,4,5], bias[0,0:5], 'x-', [1,2,3,4,5], bias[1,0:5], 'x-', [1,2,3,4,5], bias[2,0:5], 'x-', [1,2,3,4,5], bias[3,0:5], 'x-', [1,2,3,4,5], bias[4,0:5], 'x-', [1,2,3,4,5], bias[5,0:5], 'x-')
     plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
-    plt.title('Bias')
+    plt.xlabel('distance [m]')
+    plt.ylabel('bias [m]')
 
     plt.figure()
-    plt.plot([1,2,3,4,5], precision[0,0:5], [1,2,3,4,5], precision[1,0:5], [1,2,3,4,5], precision[2,0:5], [1,2,3,4,5], precision[3,0:5], [1,2,3,4,5], precision[4,0:5], [1,2,3,4,5], precision[5,0:5])
+    plt.plot([1,2,3,4,5], precision[0,0:5], 'x-', [1,2,3,4,5], precision[1,0:5], 'x-', [1,2,3,4,5], precision[2,0:5], 'x-', [1,2,3,4,5], precision[3,0:5], 'x-', [1,2,3,4,5], precision[4,0:5], 'x-', [1,2,3,4,5], precision[5,0:5], 'x-')
     plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
-    plt.title('Precision')
+    plt.xlabel('distance [m]')
+    plt.ylabel('precision [m]')
 
     plt.figure()
-    plt.plot([1,2,3,4,5], nan_ratio[0,0:5], [1,2,3,4,5], nan_ratio[1,0:5], [1,2,3,4,5], nan_ratio[2,0:5], [1,2,3,4,5], nan_ratio[3,0:5], [1,2,3,4,5], nan_ratio[4,0:5], [1,2,3,4,5], nan_ratio[5,0:5])
+    plt.plot([1,2,3,4,5], nan_ratio[0,0:5], 'x-', [1,2,3,4,5], nan_ratio[1,0:5], 'x-', [1,2,3,4,5], nan_ratio[2,0:5], 'x-', [1,2,3,4,5], nan_ratio[3,0:5], 'x-', [1,2,3,4,5], nan_ratio[4,0:5], 'x-', [1,2,3,4,5], nan_ratio[5,0:5], 'x-')
     plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
-    plt.title('NaN-Ratio')
+    plt.xlabel('distance [m]')
+    plt.ylabel('nan-ratio')
 
-    precision_scaled = np.multiply(precision, nan_ratio) + precision
-    plt.figure()
-    plt.plot([1,2,3,4,5], precision_scaled[0,0:5], [1,2,3,4,5], precision_scaled[1,0:5], [1,2,3,4,5], precision_scaled[2,0:5], [1,2,3,4,5], precision_scaled[3,0:5], [1,2,3,4,5], precision_scaled[4,0:5], [1,2,3,4,5], precision_scaled[5,0:5])
-    plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
-    plt.title('Scaled Precision')
+    # precision_scaled = np.multiply(precision, nan_ratio) + precision
+    # plt.figure()
+    # plt.plot([1,2,3,4,5], precision_scaled[0,0:5], [1,2,3,4,5], precision_scaled[1,0:5], [1,2,3,4,5], precision_scaled[2,0:5], [1,2,3,4,5], precision_scaled[3,0:5], [1,2,3,4,5], precision_scaled[4,0:5], [1,2,3,4,5], precision_scaled[5,0:5])
+    # plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
+    # plt.xlabel('distance [m]')
+    # plt.ylabel('nan-ratio')
 
     plt.figure()
-    plt.plot([1,2,3,4,5], ep[0,0:5], [1,2,3,4,5], ep[1,0:5], [1,2,3,4,5], ep[2,0:5], [1,2,3,4,5], ep[3,0:5], [1,2,3,4,5], ep[4,0:5], [1,2,3,4,5], ep[5,0:5])
+    plt.plot([1,2,3,4,5], ep[0,0:5], 'x-', [1,2,3,4,5], ep[1,0:5], 'x-', [1,2,3,4,5], ep[2,0:5], 'x-', [1,2,3,4,5], ep[3,0:5], 'x-', [1,2,3,4,5], ep[4,0:5], 'x-', [1,2,3,4,5], ep[5,0:5], 'x-')
     plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
-    plt.title('Edge Precision')
+    plt.xlabel('distance [m]')
+    plt.ylabel('edge precision [m]')
 
     
+    # plt.figure()
+    # plt.plot([1,2,3,4,5], nan_edge_ratio[0,0:5], [1,2,3,4,5], nan_edge_ratio[1,0:5], [1,2,3,4,5], nan_edge_ratio[2,0:5], [1,2,3,4,5], nan_edge_ratio[3,0:5], [1,2,3,4,5], nan_edge_ratio[4,0:5], [1,2,3,4,5], nan_edge_ratio[5,0:5])
+    # plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
+    # plt.title('NaN-Edge-Ratio')
+
+    # ep_scaled = np.multiply(ep, nan_edge_ratio) + ep
+    # plt.figure()
+    # plt.plot([1,2,3,4,5], ep_scaled[0,0:5], [1,2,3,4,5], ep_scaled[1,0:5], [1,2,3,4,5], ep_scaled[2,0:5], [1,2,3,4,5], ep_scaled[3,0:5], [1,2,3,4,5], ep_scaled[4,0:5], [1,2,3,4,5], ep_scaled[5,0:5])
+    # plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
+    # plt.title('Scaled Edge Precision')
+
+    # plt.figure()
+    # plt.plot([1,2,3,4,5], quad_err[0,0:5], [1,2,3,4,5], quad_err[1,0:5], [1,2,3,4,5], quad_err[2,0:5], [1,2,3,4,5], quad_err[3,0:5], [1,2,3,4,5], quad_err[4,0:5], [1,2,3,4,5], quad_err[5,0:5])
+    # plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
+    # plt.title('Quad Reconstruction Error')
+
+    angles = [0, 20, 40, 60]
     plt.figure()
-    plt.plot([1,2,3,4,5], nan_edge_ratio[0,0:5], [1,2,3,4,5], nan_edge_ratio[1,0:5], [1,2,3,4,5], nan_edge_ratio[2,0:5], [1,2,3,4,5], nan_edge_ratio[3,0:5], [1,2,3,4,5], nan_edge_ratio[4,0:5], [1,2,3,4,5], nan_edge_ratio[5,0:5])
+    data = np.hstack([precision[:,1].reshape(6,1) ,adp[:,0:3]]).T
+    plt.plot(angles, data, 'x-')
     plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
-    plt.title('NaN-Edge-Ratio')
+    plt.xlabel('angle [°]')
+    plt.ylabel('angle dependent precision [m]')
+    plt.ylim([-0.005, 0.4])
+    plt.title('Angle Dependent Precision')
 
-    ep_scaled = np.multiply(ep, nan_edge_ratio) + ep
-    plt.figure()
-    plt.plot([1,2,3,4,5], ep_scaled[0,0:5], [1,2,3,4,5], ep_scaled[1,0:5], [1,2,3,4,5], ep_scaled[2,0:5], [1,2,3,4,5], ep_scaled[3,0:5], [1,2,3,4,5], ep_scaled[4,0:5], [1,2,3,4,5], ep_scaled[5,0:5])
-    plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
-    plt.title('Scaled Edge Precision')
-
-    plt.figure()
-    plt.plot([20,40,60], adr[0,0:3], [20,40,60], adr[1,0:3], [20,40,60], adr[2,0:3], [20,40,60], adr[3,0:3], [20,40,60], adr[4,0:3], [20,40,60], adr[5,0:3])
-    plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
-    plt.title('Angle Dependent Reflectivity')
+    # plt.figure()
+    # plt.plot([1,2,3], rad_mean[0,0:3], [1,2,3], rad_mean[1,0:3], [1,2,3], rad_mean[2,0:3], [1,2,3], rad_mean[3,0:3], [1,2,3], rad_mean[4,0:3], [1,2,3], rad_mean[5,0:3])
+    # plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
+    # plt.title('Radius Reconstruction Error Mean')
 
     plt.figure()
-    plt.plot([1,2,3], rad_mean[0,0:3], [1,2,3], rad_mean[1,0:3], [1,2,3], rad_mean[2,0:3], [1,2,3], rad_mean[3,0:3], [1,2,3], rad_mean[4,0:3], [1,2,3], rad_mean[5,0:3])
-    plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
-    plt.title('Radius Reconstruction Error Mean')
+    plt.plot([1,2,3], sphere_err[2,0:3]/1000, 'x-', [1,2,3], sphere_err[3,0:3]/1000, 'x-', [1,2,3], sphere_err[4,0:3]/1000, 'x-', [1,2,3], sphere_err[5,0:3]/1000, 'x-')
+    plt.legend(['Astra Stereo', 'D435', 'D455', 'ZED2'])
+    plt.xlabel('distance [m]')
+    plt.ylabel('sphere radius mean error [m]')
+    # plt.title('Sphere Reconstruction Error')
 
     plt.figure()
-    plt.plot([1,2,3], rad_std[0,0:3], [1,2,3], rad_std[1,0:3], [1,2,3], rad_std[2,0:3], [1,2,3], rad_std[3,0:3], [1,2,3], rad_std[4,0:3], [1,2,3], rad_std[5,0:3])
-    plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
-    plt.title('Radius Reconstruction Error Standard Deviation')
+    plt.plot([1,2,3], rad_std[2,0:3], 'x-', [1,2,3], rad_std[3,0:3], 'x-', [1,2,3], rad_std[4,0:3], 'x-', [1,2,3], rad_std[5,0:3], 'x-')
+    plt.legend(['Astra Stereo', 'D435', 'D455', 'ZED2'])
+    plt.xlabel('distance [m]')
+    plt.ylabel('sphere radius standard deviation [m]')
+    # plt.title('Sphere Reconstruction Error Standard Deviation')
 
-    plt.figure()
-    plt.plot([1,2,3], sphere_err[0,0:3], [1,2,3], sphere_err[1,0:3], [1,2,3], sphere_err[2,0:3], [1,2,3], sphere_err[3,0:3], [1,2,3], sphere_err[4,0:3], [1,2,3], sphere_err[5,0:3])
-    plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
-    plt.title('Sphere Reconstruction Error')
+    reference_data = np.array([bias[:,1], precision[:,1], sphere_err[:,1], rad_std[:,1]])
+    low_light_data = np.array([bias[:,5], precision[:,5], sphere_err[:,3], rad_std[:,3]])
+    low_light_increase = np.array(((reference_data-low_light_data)/reference_data)*100)
+    low_light_increase[2:4, 2] = np.nan # sphere values for orbbec are zero but should be nan 
 
-    # plot low ligh performance scaled compared to bright light
-    max_bias = np.nanmax(np.abs([bias[:,6], bias[:,1]]))
-    max_precision = np.nanmax(np.abs([precision[:,6], precision[:,1]]))
-    max_ep = np.nanmax(np.abs([ep[:,6], ep[:,1]]))
-    max_nan_ratio = np.nanmax(np.abs([nan_ratio[:,6], nan_ratio[:,1]]))
-    max_nan_edge_ratio = np.nanmax(np.abs([nan_edge_ratio[:,6], nan_edge_ratio[:,1]]))
-    max_rad_mean = np.nanmax(np.abs([rad_mean[:,3], rad_mean[:,1]]))
-    max_rad_std = np.nanmax(np.abs([rad_std[:,3], rad_std[:,1]]))
-    max_sphere_err = np.nanmax(np.abs([sphere_err[:,3], sphere_err[:,1]]))
-    low_light_measures_scaled = np.transpose(np.array([np.abs(bias[:,6])/max_bias,np.abs(precision[:,6])/max_precision,np.abs(ep[:,6])/max_ep,np.abs(nan_ratio[:,6])/max_nan_ratio,np.abs(nan_edge_ratio[:,6])/max_nan_edge_ratio,np.abs(rad_mean[:,3])/max_rad_mean,np.abs(rad_std[:,3])/max_rad_std,np.abs(sphere_err[:,3])/max_sphere_err]))
-    bright_light_measures_scaled = np.transpose(np.array([np.abs(bias[:,1])/max_bias,np.abs(precision[:,1])/max_precision,np.abs(ep[:,1])/max_ep,np.abs(nan_ratio[:,1])/max_nan_ratio,np.abs(nan_edge_ratio[:,1])/max_nan_edge_ratio,np.abs(rad_mean[:,1])/max_rad_mean,np.abs(rad_std[:,1])/max_rad_std,np.abs(sphere_err[:,1])/max_sphere_err]))
-    plt.figure()
-    plt.plot(['bias','precision','ep','nan ratio','ep nan','rad mean','rad std','sre'], low_light_measures_scaled[0,:],'rs', 
-        ['bias','precision','ep','nan ratio','ep nan','rad mean','rad std','sre'], low_light_measures_scaled[1,:], 'gs',
-        ['bias','precision','ep','nan ratio','ep nan','rad mean','rad std','sre'], low_light_measures_scaled[2,:], 'bs',
-        ['bias','precision','ep','nan ratio','ep nan','rad mean','rad std','sre'], low_light_measures_scaled[3,:], 'cs',
-        ['bias','precision','ep','nan ratio','ep nan','rad mean','rad std','sre'], low_light_measures_scaled[4,:], 'ms',
-        ['bias','precision','ep','nan ratio','ep nan','rad mean','rad std','sre'], low_light_measures_scaled[5,:], 'ys',
-        ['bias','precision','ep','nan ratio','ep nan','rad mean','rad std','sre'], bright_light_measures_scaled[0,:],'r^', 
-        ['bias','precision','ep','nan ratio','ep nan','rad mean','rad std','sre'], bright_light_measures_scaled[1,:], 'g^',
-        ['bias','precision','ep','nan ratio','ep nan','rad mean','rad std','sre'], bright_light_measures_scaled[2,:], 'b^',
-        ['bias','precision','ep','nan ratio','ep nan','rad mean','rad std','sre'], bright_light_measures_scaled[3,:], 'c^',
-        ['bias','precision','ep','nan ratio','ep nan','rad mean','rad std','sre'], bright_light_measures_scaled[4,:], 'm^',
-        ['bias','precision','ep','nan ratio','ep nan','rad mean','rad std','sre'], bright_light_measures_scaled[5,:], 'y^'
-        )
+    
+    # plt.figure()
+    # plt.plot(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'], low_light_increase[0,:],'rs', 
+    #     ['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'], low_light_increase[1,:], 'gs',
+    #     ['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'], low_light_increase[2,:],'bs', 
+    #     ['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'], low_light_increase[3,:], 'cs',
+    #     )
 
-    plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
-    plt.title('Low Light Perfomance')
+    # plt.legend(['bias', 'precision', 'sphere mean', 'sphere std'])
+    # plt.ylabel('low light performance [%]')
+    # # plt.title('Low Light Perfomance')
+    # plt.ylim([-1100, 150])
 
-    # plot performance on shiny target scaled compared to non-shiny target
-    max_bias = np.nanmax(np.abs([bias[:,5], bias[:,1]]))
-    max_precision = np.nanmax(np.abs([precision[:,5], precision[:,1]]))
-    max_ep = np.nanmax(np.abs([ep[:,5], ep[:,1]]))
-    max_nan_ratio = np.nanmax(np.abs([nan_ratio[:,5], nan_ratio[:,1]]))
-    max_nan_edge_ratio = np.nanmax(np.abs([nan_edge_ratio[:,5], nan_edge_ratio[:,1]]))
-    shiny_measures_scaled = np.transpose(np.array([np.abs(bias[:,5])/max_bias,np.abs(precision[:,5])/max_precision,np.abs(ep[:,5])/max_ep,np.abs(nan_ratio[:,5])/max_nan_ratio,np.abs(nan_edge_ratio[:,5])/max_nan_edge_ratio]))
-    standard_measures_scaled = np.transpose(np.array([np.abs(bias[:,1])/max_bias,np.abs(precision[:,1])/max_precision,np.abs(ep[:,1])/max_ep,np.abs(nan_ratio[:,1])/max_nan_ratio,np.abs(nan_edge_ratio[:,1])/max_nan_edge_ratio]))
-    plt.figure()
-    plt.plot(['bias','precision','ep','nan ratio','ep nan'], shiny_measures_scaled[0,:],'rs', 
-        ['bias','precision','ep','nan ratio','ep nan'], shiny_measures_scaled[1,:], 'gs',
-        ['bias','precision','ep','nan ratio','ep nan'], shiny_measures_scaled[2,:], 'bs',
-        ['bias','precision','ep','nan ratio','ep nan'], shiny_measures_scaled[3,:], 'cs',
-        ['bias','precision','ep','nan ratio','ep nan'], shiny_measures_scaled[4,:], 'ms',
-        ['bias','precision','ep','nan ratio','ep nan'], shiny_measures_scaled[5,:], 'ys',
-        ['bias','precision','ep','nan ratio','ep nan'], standard_measures_scaled[0,:],'r^', 
-        ['bias','precision','ep','nan ratio','ep nan'], standard_measures_scaled[1,:], 'g^',
-        ['bias','precision','ep','nan ratio','ep nan'], standard_measures_scaled[2,:], 'b^',
-        ['bias','precision','ep','nan ratio','ep nan'], standard_measures_scaled[3,:], 'c^',
-        ['bias','precision','ep','nan ratio','ep nan'], standard_measures_scaled[4,:], 'm^',
-        ['bias','precision','ep','nan ratio','ep nan'], standard_measures_scaled[5,:], 'y^'
-        )
 
-    plt.legend(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'])
-    plt.title('Shiny Performance')
+    reference_data = np.array([bias[:,1], precision[:,1], nan_ratio[:,1], ep[:,1]])
+    shiny_data = np.array([bias[:,6], precision[:,6], nan_ratio[:,6], ep[:,6]])
+    shiny_data_increase = np.array(((reference_data-shiny_data)/reference_data)*100)
+    # low_light_increase[2:4, 2] = np.nan # sphere values for orbbec are zero but should be nan 
+
+    
+    # plt.figure()
+    # plt.plot(['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'], shiny_data_increase[0,:],'rs', 
+    #     ['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'], shiny_data_increase[1,:], 'gs',
+    #     # ['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'], shiny_data_increase[2,:],'bs', 
+    #     # ['Oak-D', 'Oak-D Pro', 'Astra Stereo', 'D435', 'D455', 'ZED2'], shiny_data_increase[3,:], 'cs',
+    #     )
+    # plt.legend(['bias', 'precision'])
+    # plt.ylabel('reflection performance [%]')
+    # # plt.title('Low Light Perfomance')
+    # plt.ylim([-1100, 150])
 
 
     plt.show()

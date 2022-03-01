@@ -56,14 +56,14 @@ def main():
                              [0.0, 0.0, 1.0, 1.0], [0.0, 0.0, 0.0, 1.0]])
     draw_registration_result(source_points, target_points, trans_init)
     print("Initial alignment")
-    evaluation = o3d.registration.evaluate_registration(source_points, target_points,
+    evaluation = o3d.pipelines.registration.evaluate_registration(source_points, target_points,
                                                        threshold, trans_init)
     print(evaluation)
 
     print("Apply point-to-point ICP")
-    reg_p2p = o3d.registration.registration_icp(
+    reg_p2p = o3d.pipelines.registration.registration_icp(
         source_points, target_points, threshold, trans_init,
-        o3d.registration.TransformationEstimationPointToPoint())
+        o3d.pipelines.registration.TransformationEstimationPointToPoint())
     print(reg_p2p)
     print("Transformation is:")
     print(reg_p2p.transformation)
