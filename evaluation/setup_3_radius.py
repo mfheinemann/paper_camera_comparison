@@ -3,14 +3,13 @@ import cv2
 import tkinter as tk
 from tkinter import filedialog
 from crop_target.crop_target import CropTarget
-import open3d as o3d
 from common.constants import *
 import matplotlib.pyplot as plt
 
 def main():
     root = tk.Tk()
     root.withdraw()
-    file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")]) #initialdir = '/media/michel/0621-AD85', 
+    file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")])
 
     # Define target
     shape   = 'circle'
@@ -20,15 +19,17 @@ def main():
     edge_width = 0
     target  = CropTarget(shape, center, size, angle, edge_width)
 
-    eval_setup_3_1(file_path, target, shape, center, size, angle, edge_width)
+    eval_setup_3_1(file_path, target, center, size, angle, edge_width)
 
 
-def eval_setup_3_1(file_path, target, shape, center, size, angle, edge_width, show_mask=True):
-
+def eval_setup_3_1(file_path, target, center, size, angle, edge_width, show_mask=True):
+    open_str = "Experiment configuration - Setup 3 (RRE)\n"
+    open_str += "Distance:\t{:.3f}m\nTarget radius:\t{:.3f}m\nAngle:\t\t{:.3f}rad\nEdge width:\t{}px"
     print("Opening file: ", file_path, "\n")
-    print("Experiment configuration - Setup 3 (RRE)\nDistance:\t{:.3f}m\nTarget radius:\t{:.3f}m\nAngle:\t\t{:.3f}rad\nEdge width:\t{}px".format(
+    print(open_str.format(
          np.squeeze(center[2]), size, angle, edge_width))
 
+    # Load data from .npz file
     array = np.load(file_path)
     data  = array['data'][4:]
     extrinsic_params_data = array['extrinsic_params']
@@ -36,11 +37,10 @@ def eval_setup_3_1(file_path, target, shape, center, size, angle, edge_width, sh
     extrinsic_params = extrinsic_params_data[0, :, :]
     intrinsic_params = intrinsic_params_data[0, :, :]
 
+    # Give initial frame with target frame
     depth_image = data[5,:,:,2].astype(np.int16)
-
     disp = (depth_image * (255.0 / np.max(depth_image))).astype(np.uint8)
     disp = cv2.applyColorMap(disp, cv2.COLORMAP_JET)
-
     first_image_with_target = target.show_target_in_image(disp, extrinsic_params, intrinsic_params)
 
     if show_mask:

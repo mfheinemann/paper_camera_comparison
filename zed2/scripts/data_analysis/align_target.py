@@ -1,9 +1,7 @@
 import pyzed.sl as sl
-import datetime
 import numpy as np
 import cv2
 from crop_target.crop_target import CropTarget
-import math as m
 
 def main():
     print("Check that target is aligned in the frame... Press 'q' to exit")
@@ -28,11 +26,11 @@ def main():
     shape   = 'rectangle'
     if shape == 'rectangle':
         center  = np.array([[-0.029], [0.0], [1.0 - 0.015]])    # Center of plane
-        size    = np.array([0.35, 0.2])                 # (width, height) in m
-        angle   = np.radians(0)                      # In degrees
+        size    = np.array([0.35, 0.2])                         # (width, height) in m
+        angle   = np.radians(0)                                 # In degrees
     elif shape == 'circle':
-        center  = np.array([[0.0], [0.0], [2.0 - 0.015]])    # Center of shperec
-        size    = 0.139 / 2.0                          # Radius in m
+        center  = np.array([[0.0], [0.0], [2.0 - 0.015]])       # Center of shperec
+        size    = 0.139 / 2.0                                   # Radius in m
         angle   = np.radians(0.0)
     else:
         print("Not a valid shape!")
@@ -59,19 +57,15 @@ def main():
             extrinsic_params = np.concatenate((R, np.array([t]).T), axis=1)
         
             image = depth_image.get_data()
-            image_mask = target.crop_to_target(image, extrinsic_params, intrinsic_params)
             image_with_target = target.show_target_in_image(image, extrinsic_params, intrinsic_params)
 
             rgb = rgb_image.get_data()
             rgb_with_target = target.show_target_in_image(rgb, extrinsic_params, intrinsic_params)
 
-            #image_concat = np.vstack((image_with_target, image_mask))
-
             cv2.imshow("ZED | depth", image_with_target)
             cv2.imshow("ZED | image", rgb_with_target)
 
             key = cv2.waitKey(1)
-
 
     cv2.destroyAllWindows()
     zed.close()

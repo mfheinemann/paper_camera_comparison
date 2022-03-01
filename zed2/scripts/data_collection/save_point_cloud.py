@@ -5,16 +5,15 @@ import os
 import sys
 import tkinter as tk
 from tkinter import messagebox
-from matplotlib import pyplot as plt
 
 def main():
-    DURATION = 2                # measurement duration
+    DURATION = 2                    # measurement duration
     LOG_PATH = '../../logs/log_zed2'
-    NAME = '15'           # name of the files
-    DEPTH_RES = [1280, 720]  # desired depth resolution
-    DEPTH_RATE = 30         # desired depth frame rate
-    COLOR_RES = [1280, 720]  # desired rgb resolution
-    COLOR_RATE = 30         # desired rgb frame rate
+    NAME = '1'                      # name of the files
+    DEPTH_RES = [1280, 720]         # desired depth resolution
+    DEPTH_RATE = 30                 # desired depth frame rate
+    COLOR_RES = [1280, 720]         # desired rgb resolution
+    COLOR_RATE = 30                 # desired rgb frame rate
     num_frames = DURATION * DEPTH_RATE
 
     color_path = LOG_PATH + '_' + NAME + '_rgb.avi'
@@ -75,8 +74,8 @@ def main():
               [0, cam_params.left_cam.fy, cam_params.left_cam.cy],
               [0, 0, 1]])
 
-            R = pose.get_rotation_matrix(sl.Rotation()).r.T     
-            t = pose.get_translation(sl.Translation()).get()            
+            R = pose.get_rotation_matrix(sl.Rotation()).r.T
+            t = pose.get_translation(sl.Translation()).get()
             extrinsic_matrix = np.concatenate((R, np.array([t]).T), axis=1)
 
             extrinsic_params_array[i,:,:] = extrinsic_matrix

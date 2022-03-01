@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 from sklearn.linear_model import LinearRegression
-from matplotlib import pyplot as plt
 from common.constants import *
 
 def calculate_edge_precision(target, edge_masks, img_cnt, point_cloud_cropped, extrinsic_params, intrinsic_params):
@@ -14,13 +13,6 @@ def calculate_edge_precision(target, edge_masks, img_cnt, point_cloud_cropped, e
 
         edge_mask_cropped = target.crop_to_target(edge_mask, extrinsic_params, intrinsic_params, True)
         img_cnt_edges = cv2.bitwise_and(img_cnt, img_cnt, mask=edge_mask_cropped)
-
-
-        #plt.figure(1)
-        #plt.imshow(img_cnt)
-        #plt.show()
-        # cv2.imshow("edge", img_cnt_edges)
-        # cv2.waitKey(0)
 
         # Return non-zero pixel coordinates in mask
         pixel_z = np.argwhere(img_cnt_edges)
@@ -37,27 +29,12 @@ def calculate_edge_precision(target, edge_masks, img_cnt, point_cloud_cropped, e
         if idx == 0:
             long = 0
             short = 1
-            # sort_idx = np.argsort(pixel[:,0], axis=0)
-            # X = pixel[sort_idx,0].reshape(-1, 1)
-            # y = pixel[sort_idx,1]
+
         else:
             long = 1
             short = 0
-            # sort_idx = np.argsort(pixel[:,1], axis=0)
-            # X = pixel[sort_idx,1].reshape(-1, 1)
-            # y = pixel[sort_idx,0]
-        # try:
-            # reg.fit(X, y)
-            # y_pred = reg.predict(X)
 
 
-        #plt.scatter(X, y,color='g')
-        #plt.plot(X, y_pred,color='k')
-        #plt.plot(X, np.around(y_pred),color='b')
-        #plt.show()
-
-            # line_pixel_diff = np.abs(y - y_pred)
-        #print(pc_list[idxs, 0:2])
         edge_precision = np.min(np.std(pc_list[idxs, 0:2], axis = 0))
 
         # except: edge_precision = np.nan
@@ -80,17 +57,30 @@ def get_edge_precision(target, point_cloud, mean_depth, extrinsic_params, intrin
     contours, _ = cv2.findContours(target_mask.astype(np.uint8),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     areas = [cv2.contourArea(c) for c in contours]
     sorted_areas = np.sort(areas)
+<<<<<<< HEAD
     #try:
     idx = areas.index(sorted_areas[-1])
+=======
+
+    try:
+        idx = areas.index(sorted_areas[-1])
+>>>>>>> 81347b1f05d70114c0dc31102d70fd0fed77c1a8
 
 
     # Draw contour
     img_cnt = np.zeros(image_cropped.shape, np.uint8)
     cv2.drawContours(img_cnt, contours, idx, (255),1)
 
+<<<<<<< HEAD
     # Create mask of edge
     edge_masks = target.create_edge_masks(image.shape, extrinsic_params, intrinsic_params)
 
     edge_precision = calculate_edge_precision(target, edge_masks, img_cnt, point_cloud_cropped, extrinsic_params, intrinsic_params)
     #except: edge_precision = [np.nan, np.nan, np.nan, np.nan]
+=======
+        edge_precision = calculate_edge_precision(target, edge_masks, img_cnt, extrinsic_params, intrinsic_params)
+    except: 
+        edge_precision = [np.nan, np.nan, np.nan, np.nan]
+
+>>>>>>> 81347b1f05d70114c0dc31102d70fd0fed77c1a8
     return edge_precision

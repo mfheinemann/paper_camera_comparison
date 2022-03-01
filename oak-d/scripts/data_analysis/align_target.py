@@ -4,19 +4,19 @@ import cv2
 import numpy as np
 import depthai as dai
 from crop_target.crop_target import CropTarget
-from matplotlib import pyplot as plt
+
 def main():
     print("Check that target is aligned in the frame... Press 'q' to exit")
 
     # Define target
     shape   = 'rectangle'
     if shape == 'rectangle':
-        center  = np.array([[-0.0], [0.0], [3.0 - 0.054]])    # Center of plane
-        size    = np.array([0.5, 0.5])                 # (width, height) in m
-        angle   = np.radians(0.0)                      # In degrees                           # In radiants
+        center  = np.array([[-0.0], [0.0], [3.0 - 0.054]])      # Center of plane
+        size    = np.array([0.5, 0.5])                          # (width, height) in m
+        angle   = np.radians(0.0)                               # In degrees
     elif shape == 'circle':
-        center  = np.array([[0.0], [0.0], [2.0 - 0.054]])   # Center of shpere
-        size    = 0.139/2                               # Radius in m
+        center  = np.array([[0.0], [0.0], [2.0 - 0.054]])       # Center of shpere
+        size    = 0.139/2                                       # Radius in m
         angle   = 0.0
     else:
         print("Not a valid shape!")
@@ -73,8 +73,6 @@ def main():
     camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
     camRgb.setPreviewSize(1280, 720)
 
-    # stereo.initialConfig.setConfidenceThreshold(240)
-
     xoutDisparity.setStreamName("disparity")
     xoutDepth.setStreamName("depth")
     xoutRgb.setStreamName("rgb")
@@ -97,14 +95,8 @@ def main():
             disp_frame = getDisparityFrame(disp_frame)
             rbg_frame = rgb_queue.get().getCvFrame()  # blocking call, will wait until a new data has arrived
 
-            # plt.figure(1)
-            # plt.imshow(depth_frame)
-            # plt.show()
             calibData = device.readCalibration()
             color_intrinsic_matrix = np.array(calibData.getCameraIntrinsics(dai.CameraBoardSocket.RGB, 1280, 720))
-            # color_extrinsic_matrix = np.array(calibData.getCameraExtrinsics(dai.CameraBoardSocket.RGB, dai.CameraBoardSocket.RGB))
-            # color_extrinsic_matrix = color_extrinsic_matrix[:-1,:]
-            # color_extrinsic_matrix[:,-1] = color_extrinsic_matrix[:,-1] / 100 # Translation is in cm for some reason
             color_extrinsic_matrix = np.hstack((np.identity(3), np.zeros((3,1))))
             
             depth_intrinsic_matrix = np.array(calibData.getCameraIntrinsics(dai.CameraBoardSocket.RIGHT, 1280, 720))
@@ -113,16 +105,9 @@ def main():
             depth_extrinsic_matrix[:,-1] = depth_extrinsic_matrix[:,-1] / 100 # Translation is in cm for some reason
 
 
-            #image_mask = target.crop_to_target(rbg_frame, extrinsic_matrix, intrinsic_matrix)
             image_with_target = target.show_target_in_image(rbg_frame, color_extrinsic_matrix, color_intrinsic_matrix)
-
             depth_image_with_target = target.show_target_in_image(disp_frame, depth_extrinsic_matrix, depth_intrinsic_matrix)
 
-            #image_concat = np.vstack((image_with_target, image_mask))
-            # print(depth_frame[330:390, 600:680])
-            # plt.figure(1)
-            # plt.imshow(depth_image_with_target)
-            # plt.show()
             cv2.imshow("RGB", image_with_target)
             cv2.imshow("Depth", depth_image_with_target)
             if cv2.waitKey(1) == ord("q"):

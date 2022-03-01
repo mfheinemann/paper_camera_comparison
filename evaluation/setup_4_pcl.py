@@ -1,4 +1,3 @@
-from re import T
 import tkinter as tk
 from tkinter import filedialog
 import numpy as np
@@ -20,7 +19,7 @@ target  = CropTarget(shape, center, size, angle, edge_width)
 def main():
     root = tk.Tk()
     root.withdraw()
-    file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")]) #initialdir = '/media/michel/0621-AD85', 
+    file_path = filedialog.askopenfilename(filetypes=[("Numpy file", ".npz")])
 
     print("Opening file: ", file_path, "\n")
 
