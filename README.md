@@ -7,7 +7,7 @@ Code for the paper "A metrological and application related comparison of six con
 
 Paper is submitted to IROS 2022 conference: https://iros2022.org/
 
-This Git is citable; DOI: 
+This repository is citable; DOI: 
 
 All data recorded is accessible through TUHH Open Research: 
 
