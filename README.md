@@ -1,4 +1,5 @@
 **Status Repo:** Released
+
 **Status Paper:** Submitted
 
 ## paper_camera_comparison
@@ -10,7 +11,7 @@ This Git is citable; DOI:
 
 All data recorded is accessible through TUHH Open Research: 
 
-# Structure
+### Structure
 - this repository has six folders on the top level. Five for the different cameras and one for evaluation
 - for each camera the script /scripts/data_analysis/align_target.py was used to stream depth and RGB from the camera and project a shape of the target onto these streams to align the camera
 - the scripts /scripts/data_collection/save_point_cloud.py were used to record depth and RGB streams and save them in /logs/
