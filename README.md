@@ -9,7 +9,7 @@ Paper is submitted to IROS 2022 conference: https://iros2022.org/
 
 This repository is citable; DOI: 
 
-All data recorded is accessible through TUHH Open Research: 
+All data recorded is accessible through TUHH Open Research and citeable; DOI: https://doi.org/10.15480/336.4225
 
 ### Structure
 - this repository has six folders on the top level. Five for the different cameras and one for evaluation
