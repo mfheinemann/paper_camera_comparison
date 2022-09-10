@@ -5,7 +5,7 @@
 ## paper_camera_comparison
 Code for the paper "A metrological and application related comparison of six consumer grade stereo depth cameras for the use in robotics"
 
-Paper is submitted to IROS 2022 conference: https://iros2022.org/
+Paper is submitted to ROSE 2022 conference: https://rose2022.ieee-ims.org/
 
 This repository is citable; DOI: https://doi.org/10.5281/zenodo.6338080
 
